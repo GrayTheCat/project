@@ -3,6 +3,8 @@ package com.epam.finaltask.repository;
 import java.util.List;
 import java.util.UUID;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import com.epam.finaltask.model.enums.HotelType;
@@ -11,6 +13,7 @@ import com.epam.finaltask.model.enums.TransferType;
 import com.epam.finaltask.model.Voucher;
 
 public interface VoucherRepository extends JpaRepository<Voucher, UUID> {
+    Page<Voucher> findAll(Pageable pageable);
     List<Voucher> findAllByUserId(UUID userId);
     List<Voucher> findAllByTourType(TourType tourType);
     List<Voucher> findAllByTransferType(TransferType transferType);

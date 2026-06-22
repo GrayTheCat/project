@@ -7,6 +7,7 @@ import com.epam.finaltask.model.enums.TourType;
 import com.epam.finaltask.service.VoucherService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -23,8 +24,12 @@ public class VoucherRestController {
     private final VoucherService voucherService;
 
     @GetMapping
-    public ResponseEntity<ApiResponse<List<VoucherDTO>>> getAllVouchers() {
-        return ResponseEntity.ok(new ApiResponse<>(null, null, voucherService.findAll()));
+    public ResponseEntity<ApiResponse<Page<VoucherDTO>>> getAllVouchers(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "id") String sortBy
+    ) {
+        return ResponseEntity.ok(new ApiResponse<>(null, null, voucherService.findAll(page, size, sortBy)));
     }
 
     @GetMapping("/user/{userId}")
@@ -45,6 +50,11 @@ public class VoucherRestController {
     @GetMapping("/com/epam/finaltask/filter/tour")
     public ResponseEntity<ApiResponse<List<VoucherDTO>>> filterByTourType(@RequestParam TourType type) {
         return ResponseEntity.ok(new ApiResponse<>(null, null, voucherService.findAllByTourType(type)));
+    }
+
+    @GetMapping("/filter/price")
+    public ResponseEntity<ApiResponse<List<VoucherDTO>>> filterByPrice(@RequestParam Double maxPrice) {
+        return ResponseEntity.ok(new ApiResponse<>(null, null, voucherService.findAllByPrice(maxPrice)));
     }
 
     @PostMapping

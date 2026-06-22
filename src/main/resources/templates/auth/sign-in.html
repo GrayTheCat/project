@@ -2,29 +2,33 @@
 <html xmlns:th="http://www.thymeleaf.org" lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Login Page</title>
-    <!-- Add Bootstrap CSS -->
+    <title th:text="#{login.title}">Login Page</title>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
 </head>
 <body>
-<div class="container">
-    <h2>Login</h2>
-    <!-- Update the form to include th:action, th:object, and method attributes -->
+<div class="container mt-5">
+    <div class="d-flex justify-content-end mb-3">
+        <a href="?lang=en" class="btn btn-sm btn-outline-secondary mr-2">EN</a>
+        <a href="?lang=uk" class="btn btn-sm btn-outline-secondary">UK</a>
+    </div>
+
+    <h2 th:text="#{login.title}">Login</h2>
     <form th:action="@{/api/auth/authenticate}" th:object="${loginRequest}" method="post">
+
+        <div th:if="${#fields.hasErrors('*')}" class="alert alert-danger">
+            <p th:each="err : ${#fields.errors('*')}" th:text="${err}"></p>
+        </div>
+
         <div class="form-group">
-            <label for="username">Username</label>
-            <!-- Update input to use th:field for binding -->
-            <input type="text" class="form-control" id="username" th:field="*{username}" placeholder="Enter username" required>
+            <label for="username" th:text="#{login.username}">Username</label>
+            <input type="text" class="form-control" id="username" name="username" placeholder="Enter username" required>
         </div>
         <div class="form-group">
-            <label for="password">Password</label>
-            <!-- Update input to use th:field for binding -->
-            <input type="password" class="form-control" id="password" th:field="*{password}" placeholder="Password" required>
+            <label for="password" th:text="#{login.password}">Password</label>
+            <input type="password" class="form-control" id="password" name="password" placeholder="Password" required>
         </div>
-        <!-- Change the link to a submit button -->
-        <button type="submit" class="btn btn-primary">Submit</button>
+        <button type="submit" class="btn btn-primary" th:text="#{login.submit}">Submit</button>
     </form>
 </div>
 </body>
 </html>
-

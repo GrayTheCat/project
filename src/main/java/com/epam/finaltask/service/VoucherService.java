@@ -2,6 +2,7 @@ package com.epam.finaltask.service;
 
 import java.util.List;
 
+import org.springframework.data.domain.Page;
 import com.epam.finaltask.dto.VoucherDTO;
 import com.epam.finaltask.model.enums.HotelType;
 import com.epam.finaltask.model.enums.TourType;
@@ -19,5 +20,5 @@ public interface VoucherService {
     List<VoucherDTO> findAllByPrice(Double price);
     List<VoucherDTO> findAllByHotelType(HotelType hotelType);
 
-    List<VoucherDTO> findAll();
+    Page<VoucherDTO> findAll(int page, int size, String sortBy);
 }

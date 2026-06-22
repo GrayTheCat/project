@@ -1,5 +1,8 @@
 package com.epam.finaltask.service.impl;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import com.epam.finaltask.dto.VoucherDTO;
 import com.epam.finaltask.exception.ResourceNotFoundException;
 import com.epam.finaltask.exception.BusinessLogicException;
@@ -13,6 +16,7 @@ import com.epam.finaltask.repository.VoucherRepository;
 import com.epam.finaltask.service.VoucherService;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -110,8 +114,9 @@ public class VoucherServiceImpl implements VoucherService {
     }
 
     @Override
-    public List<VoucherDTO> findAll() {
-        return voucherRepository.findAllByOrderByIsHotDesc().stream()
-                .map(v -> modelMapper.map(v, VoucherDTO.class)).collect(Collectors.toList());
+    public Page<VoucherDTO> findAll(int page, int size, String sortBy) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy));
+        return voucherRepository.findAll(pageable)
+                .map(v -> modelMapper.map(v, VoucherDTO.class));
     }
 }

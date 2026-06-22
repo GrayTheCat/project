@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Error</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+</head>
+<body>
+<div class="container text-center mt-5">
+    <h1 class="display-1 text-danger">Oops!</h1>
+    <h2>Something went wrong</h2>
+    <p th:text="${error} ?: 'An unexpected error occurred.'"></p>
+    <p th:text="'Status Code: ' + ${status}"></p>
+    <a href="/" class="btn btn-primary mt-3">Go Back to Home</a>
+</div>
+</body>
+</html>
