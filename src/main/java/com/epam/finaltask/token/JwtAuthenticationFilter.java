@@ -2,6 +2,7 @@ package com.epam.finaltask.token;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -15,7 +16,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-
 
 @Component
 @RequiredArgsConstructor
@@ -31,17 +31,28 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             @NonNull FilterChain filterChain
     ) throws ServletException, IOException {
 
-        final String authHeader = request.getHeader("Authorization");
-        final String jwt;
-        final String username;
+        String jwt = null;
+        String username = null;
 
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            filterChain.doFilter(request, response);
-            return;
+        if (request.getCookies() != null) {
+            for (Cookie cookie : request.getCookies()) {
+                if ("JWT".equals(cookie.getName())) {
+                    jwt = cookie.getValue();
+                    break;
+                }
+            }
         }
 
-        jwt = authHeader.substring(7);
-        username = jwtService.extractUsername(jwt);
+        final String authHeader = request.getHeader("Authorization");
+        if (jwt == null && authHeader != null && authHeader.startsWith("Bearer ")) {
+            jwt = authHeader.substring(7);
+        }
+
+        if (jwt != null) {
+            try {
+                username = jwtService.extractUsername(jwt);
+            } catch (Exception ignored) {}
+        }
 
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             UserDetails userDetails = this.userDetailsService.loadUserByUsername(username);

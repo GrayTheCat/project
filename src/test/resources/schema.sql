@@ -1,4 +1,4 @@
-create table "user" (
+create table "users" (
     id              uuid          not null,
     username        varchar(255)  not null,
     first_name      varchar(255)  not null,

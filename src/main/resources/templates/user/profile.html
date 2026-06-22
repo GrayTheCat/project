@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>My Profile</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+</head>
+<body>
+<nav class="navbar navbar-dark bg-dark"><a class="navbar-brand" href="/">Back to Home</a></nav>
+<div class="container mt-5">
+    <h2>Personal Account: <span th:text="${user.firstName} + ' ' + ${user.lastName}"></span></h2>
+    <div class="card p-3 mb-4">
+        <p><strong>Email:</strong> <span th:text="${user.email}"></span></p>
+        <p><strong>Balance:</strong> $<span th:text="${user.balance}"></span></p>
+    </div>
+
+    <h4>My Ordered Tours</h4>
+    <table class="table table-bordered">
+        <thead class="thead-light"><tr><th>ID</th><th>Title</th><th>Price</th><th>Status</th></tr></thead>
+        <tbody>
+        <tr th:each="v : ${myVouchers}">
+            <td th:text="${v.id}"></td>
+            <td th:text="${v.title}"></td>
+            <td th:text="${v.price}"></td>
+            <td><span class="badge badge-success" th:text="${v.status}"></span></td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+</body>
+</html>

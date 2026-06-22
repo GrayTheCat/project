@@ -85,4 +85,14 @@ public class VoucherRestController {
         voucherService.changeHotStatus(id, voucherDTO);
         return ResponseEntity.ok(new ApiResponse<>("OK", "Voucher status is successfully changed", null));
     }
+
+    @PostMapping("/{id}/order")
+    @PreAuthorize("hasRole('USER')")
+    public ResponseEntity<ApiResponse<VoucherDTO>> orderVoucher(
+            @PathVariable String id,
+            @RequestParam String userId) {
+        return ResponseEntity.ok(
+                new ApiResponse<>("OK", "Voucher ordered successfully", voucherService.order(id, userId))
+        );
+    }
 }
