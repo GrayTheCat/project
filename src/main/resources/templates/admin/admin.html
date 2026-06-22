@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.w3.org/1999/xhtml" lang="en">
 <head>
     <meta charset="UTF-8">
     <title>Admin Dashboard</title>
@@ -25,6 +25,40 @@
             </td>
         </tr>
         </tbody>
+    </table>
+</div>
+
+<div class="container mt-5">
+    <h2>Admin Dashboard</h2>
+
+    <div class="card p-3 mb-5" sec:authorize="hasRole('ADMIN')">
+        <h4>Create New Tour</h4>
+        <form action="/web/vouchers/create" method="post" class="form-inline">
+            <input type="text" name="title" class="form-control mr-2" placeholder="Title" required>
+            <input type="number" step="0.01" name="price" class="form-control mr-2" placeholder="Price" required>
+            <select name="tourType" class="form-control mr-2">
+                <option value="REST">Rest</option>
+                <option value="EXCURSION">Excursion</option>
+                <option value="SHOPPING">Shopping</option>
+            </select>
+            <button type="submit" class="btn btn-primary">Add Tour</button>
+        </form>
+    </div>
+
+    <h4 sec:authorize="hasRole('ADMIN')">Manage Users</h4>
+    <table class="table table-sm mb-5" sec:authorize="hasRole('ADMIN')">
+        <tr><th>Username</th><th>Email</th><th>Status</th><th>Action</th></tr>
+        <tr th:each="u : ${users}">
+            <td th:text="${u.username}"></td>
+            <td th:text="${u.email}"></td>
+            <td th:text="${u.active ? 'Active' : 'Blocked'}"></td>
+            <td>
+                <form th:action="@{'/web/users/' + ${u.username} + '/block'}" method="post">
+                    <button type="submit" class="btn btn-sm" th:classappend="${u.active ? 'btn-danger' : 'btn-success'}"
+                            th:text="${u.active ? 'Block' : 'Unblock'}"></button>
+                </form>
+            </td>
+        </tr>
     </table>
 </div>
 

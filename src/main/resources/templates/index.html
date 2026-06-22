@@ -20,6 +20,34 @@
     </div>
 </nav>
 
+<div class="container mt-4">
+    <div class="mb-3 text-right">
+        <a href="?lang=en" class="btn btn-sm btn-outline-secondary">EN</a>
+        <a href="?lang=uk" class="btn btn-sm btn-outline-secondary">UK</a>
+    </div>
+
+    <h2 th:text="#{catalog.title}">Available Tours</h2>
+
+    <form action="/" method="get" class="card p-3 mb-4 bg-light form-row" sec:authorize="isAuthenticated()">
+        <div class="col">
+            <input type="number" name="maxPrice" class="form-control" placeholder="Max Price">
+        </div>
+        <div class="col">
+            <select name="type" class="form-control">
+                <option value="">Any Type</option>
+                <option value="REST">Rest</option>
+                <option value="EXCURSION">Excursion</option>
+            </select>
+        </div>
+        <div class="col">
+            <button type="submit" class="btn btn-primary btn-block" th:text="#{filter.btn}">Filter</button>
+        </div>
+    </form>
+
+    <div class="row mt-4">
+    </div>
+</div>
+
 <div class="container mt-5">
     <h2>Available Tours</h2>
     <div class="row mt-4">

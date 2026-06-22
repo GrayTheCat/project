@@ -1,11 +1,14 @@
 package com.epam.finaltask.controller;
 
 import com.epam.finaltask.dto.UserDTO;
+import com.epam.finaltask.dto.VoucherDTO;
+import com.epam.finaltask.model.User;
 import com.epam.finaltask.service.UserService;
 import com.epam.finaltask.service.VoucherService;
 import com.epam.finaltask.token.JwtService;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -13,8 +16,10 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
 import java.security.Principal;
 
 @Controller
@@ -37,7 +42,10 @@ public class WebController {
     public String signIn() { return "auth/sign-in"; }
 
     @GetMapping("/auth/sign-up")
-    public String signUp() { return "auth/sign-up"; }
+    public String signUp(Model model) {
+        model.addAttribute("userDTO", new UserDTO());
+        return "auth/sign-up";
+    }
 
     @PostMapping("/auth/web-login")
     public String webLogin(@RequestParam String username, @RequestParam String password, HttpServletResponse response) {
@@ -59,7 +67,10 @@ public class WebController {
     }
 
     @PostMapping("/auth/web-register")
-    public String webRegister(@ModelAttribute UserDTO userDTO) {
+    public String webRegister(@Valid @ModelAttribute("userDTO") UserDTO userDTO, BindingResult bindingResult) {
+        if (bindingResult.hasErrors()) {
+            return "auth/sign-up";
+        }
         userService.register(userDTO);
         return "redirect:/auth/sign-in?registered";
     }
@@ -95,6 +106,34 @@ public class WebController {
         if (principal == null) return "redirect:/auth/sign-in";
         model.addAttribute("vouchers", voucherService.findAll(0, 100, "id").getContent());
         return "admin/admin";
+    }
+
+    @PostMapping("/web/users/{username}/block")
+    public String toggleBlockUser(@PathVariable String username) {
+        UserDTO userDTO = userService.getUserByUsername(username);
+        userDTO.setActive(!userDTO.isActive());
+        userService.changeAccountStatus(userDTO);
+        return "redirect:/admin";
+    }
+
+    @PostMapping("/web/vouchers/create")
+    public String createTour(@ModelAttribute VoucherDTO voucherDTO) {
+        voucherDTO.setStatus("REGISTERED");
+        voucherService.create(voucherDTO);
+        return "redirect:/admin";
+    }
+
+    @PostMapping("/web/profile/top-up")
+    public String topUpBalance(@RequestParam BigDecimal amount, Principal principal) {
+        if (principal != null && amount != null && amount.compareTo(BigDecimal.ZERO) > 0) {
+            UserDTO userDTO = userService.getUserByUsername(principal.getName());
+            if (userDTO.getBalance() == null) {
+                userDTO.setBalance(BigDecimal.ZERO);
+            }
+            userDTO.setBalance(userDTO.getBalance().add(amount));
+            userService.updateUser(principal.getName(), userDTO);
+        }
+        return "redirect:/profile";
     }
 
 }
