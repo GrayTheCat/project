@@ -7,9 +7,11 @@ import com.epam.finaltask.service.UserService;
 import com.epam.finaltask.service.VoucherService;
 import com.epam.finaltask.token.JwtService;
 import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -33,8 +35,25 @@ public class WebController {
     private final UserDetailsService userDetailsService;
 
     @GetMapping("/")
-    public String index(Model model) {
-        model.addAttribute("vouchers", voucherService.findAll(0, 100, "id").getContent());
+    public String index(
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) Double maxPrice,
+            @RequestParam(required = false) String tourType,
+            @RequestParam(required = false) String transferType,
+            @RequestParam(required = false) String hotelType,
+            @RequestParam(defaultValue = "0") int page,
+            Model model) {
+
+        int size = 6;
+
+        Page<VoucherDTO> voucherPage = voucherService.findFiltered(
+                search, maxPrice, tourType, transferType, hotelType, page, size, "id"
+        );
+
+        model.addAttribute("vouchers", voucherPage.getContent());
+        model.addAttribute("currentPage", page);
+        model.addAttribute("totalPages", voucherPage.getTotalPages());
+
         return "index";
     }
 
@@ -105,6 +124,7 @@ public class WebController {
     public String admin(Model model, Principal principal) {
         if (principal == null) return "redirect:/auth/sign-in";
         model.addAttribute("vouchers", voucherService.findAll(0, 100, "id").getContent());
+        model.addAttribute("users", userService.findAll());
         return "admin/admin";
     }
 
@@ -136,4 +156,36 @@ public class WebController {
         return "redirect:/profile";
     }
 
+    @GetMapping("/manager")
+    public String managerPanel(Model model) {
+        model.addAttribute("allVouchers", voucherService.findAll(0, 100, "id").getContent());
+        model.addAttribute("orderedVouchers", voucherService.findAllOrdered());
+        return "manager/manager";
+    }
+
+    @PostMapping("/web/vouchers/{id}/update")
+    public String updateTour(@PathVariable String id, @ModelAttribute VoucherDTO voucherDTO) {
+        voucherService.update(id, voucherDTO);
+        return "redirect:/admin";
+    }
+
+    @PostMapping("/web/vouchers/{id}/status")
+    public String changeVoucherStatus(@PathVariable String id,
+                                      @RequestParam String status,
+                                      @RequestParam(required = false) String reason) {
+        voucherService.changeStatus(id, status, reason);
+        return "redirect:/manager";
+    }
+
+    @PostMapping("/web/vouchers/{id}/hot")
+    public String toggleVoucherHotStatus(@PathVariable String id, HttpServletRequest request) {
+        voucherService.toggleHotStatus(id);
+        String referer = request.getHeader("Referer");
+        if (referer != null && referer.contains("/manager")) {
+            return "redirect:/manager#tours";
+        } else if (referer != null && referer.contains("/admin")) {
+            return "redirect:/admin#tours";
+        }
+        return "redirect:" + (referer != null ? referer : "/");
+    }
 }

@@ -28,7 +28,7 @@ public class VoucherMapperImpl implements VoucherMapper {
         VoucherDTO dto = modelMapper.map(voucher, VoucherDTO.class);
 
         if (voucher.getUser() != null) {
-            dto.setUserId(voucher.getUser().getId());
+            dto.getUser().setId(voucher.getUser().getId().toString());
         }
 
         return dto;

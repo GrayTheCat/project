@@ -25,6 +25,8 @@ public class Voucher {
 
     private Double price;
 
+    private String cancellationReason;
+
     @Enumerated(EnumType.STRING)
     private TourType tourType;
 
@@ -46,4 +48,12 @@ public class Voucher {
     private User user;
 
     private boolean isHot;
+
+    public Boolean getIsHot() {
+        return this.isHot;
+    }
+
+    public void setIsHot(Boolean isHot) {
+        this.isHot = isHot != null && isHot;
+    }
 }

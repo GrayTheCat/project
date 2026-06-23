@@ -1,79 +1,143 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org"
-      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
-      lang="en">
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Travel Agency</title>
+    <title th:text="#{nav.home}">Travel Agency - Catalog</title>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
 </head>
-<body>
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-    <a class="navbar-brand" href="/">Travel Agency</a>
-    <div class="ml-auto">
-        <a sec:authorize="isAnonymous()" href="/auth/sign-in" class="btn btn-outline-light">Sign in</a>
-        <a sec:authorize="isAnonymous()" href="/auth/sign-up" class="btn btn-primary">Sign up</a>
+<body class="bg-light">
 
-        <a sec:authorize="isAuthenticated()" href="/profile" class="btn btn-success">My Profile</a>
-        <a sec:authorize="hasAnyRole('ADMIN', 'MANAGER')" href="/admin" class="btn btn-warning">Admin Panel</a>
-        <a sec:authorize="isAuthenticated()" href="/auth/logout" class="btn btn-danger">Logout</a>
+<!-- Навігація -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <a class="navbar-brand" href="/" th:text="#{nav.home}">Travel Agency</a>
+    <div class="ml-auto">
+        <a sec:authorize="isAnonymous()" href="/auth/sign-in" class="btn btn-outline-light" th:text="#{nav.signin}">Sign in</a>
+        <a sec:authorize="isAnonymous()" href="/auth/sign-up" class="btn btn-primary" th:text="#{nav.signup}">Sign up</a>
+
+        <a sec:authorize="isAuthenticated()" href="/profile" class="btn btn-success" th:text="#{nav.profile}">My Profile</a>
+        <a sec:authorize="hasRole('ADMIN')" href="/admin" class="btn btn-warning" th:text="#{nav.admin}">Admin Panel</a>
+        <a sec:authorize="hasRole('MANAGER')" href="/manager" class="btn btn-info" th:text="#{nav.manager}">Manager Panel</a>
+        <a sec:authorize="isAuthenticated()" href="/auth/logout" class="btn btn-danger" th:text="#{nav.logout}">Logout</a>
     </div>
 </nav>
 
-<div class="container mt-4">
+<div class="container mt-5">
+    <!-- Перемикач мов -->
     <div class="mb-3 text-right">
         <a href="?lang=en" class="btn btn-sm btn-outline-secondary">EN</a>
         <a href="?lang=uk" class="btn btn-sm btn-outline-secondary">UK</a>
     </div>
 
-    <h2 th:text="#{catalog.title}">Available Tours</h2>
-
-    <form action="/" method="get" class="card p-3 mb-4 bg-light form-row" sec:authorize="isAuthenticated()">
-        <div class="col">
-            <input type="number" name="maxPrice" class="form-control" placeholder="Max Price">
-        </div>
-        <div class="col">
-            <select name="type" class="form-control">
-                <option value="">Any Type</option>
-                <option value="REST">Rest</option>
-                <option value="EXCURSION">Excursion</option>
-            </select>
-        </div>
-        <div class="col">
-            <button type="submit" class="btn btn-primary btn-block" th:text="#{filter.btn}">Filter</button>
-        </div>
-    </form>
-
-    <div class="row mt-4">
+    <div class="text-center mb-5">
+        <h1 th:text="#{catalog.title}">Available Tours</h1>
+        <p class="lead text-muted" th:text="#{catalog.subtitle}">Find your perfect journey</p>
     </div>
-</div>
 
-<div class="container mt-5">
-    <h2>Available Tours</h2>
-    <div class="row mt-4">
+    <!-- Панель фільтрів для авторизованих користувачів -->
+    <div class="card p-3 mb-5 shadow-sm" sec:authorize="isAuthenticated()">
+        <form action="/" method="get" class="form-row align-items-center justify-content-center">
+
+            <div class="col-auto mb-2">
+                <input type="number" step="0.01" name="maxPrice" class="form-control" th:placeholder="#{filter.price.max}">
+            </div>
+
+            <div class="col-auto mb-2">
+                <select name="tourType" class="form-control">
+                    <option value="" th:text="#{filter.type.all}">All Types</option>
+                    <option value="HEALTH" th:text="#{type.health}"></option>
+                    <option value="SPORTS" th:text="#{type.sports}"></option>
+                    <option value="LEISURE" th:text="#{type.leisure}"></option>
+                    <option value="SAFARI" th:text="#{type.safari}"></option>
+                    <option value="WINE" th:text="#{type.wine}"></option>
+                    <option value="ECO" th:text="#{type.eco}"></option>
+                    <option value="ADVENTURE" th:text="#{type.adventure}"></option>
+                    <option value="CULTURAL" th:text="#{type.cultural}"></option>
+                </select>
+            </div>
+
+            <div class="col-auto mb-2">
+                <select name="transferType" class="form-control">
+                    <option value="" th:text="#{filter.transfer.all}">All Transfers</option>
+                    <option value="BUS" th:text="#{transfer.bus}"></option>
+                    <option value="TRAIN" th:text="#{transfer.train}"></option>
+                    <option value="PLANE" th:text="#{transfer.plane}"></option>
+                    <option value="SHIP" th:text="#{transfer.ship}"></option>
+                    <option value="PRIVATE_CAR" th:text="#{transfer.private_car}"></option>
+                    <option value="JEEPS" th:text="#{transfer.jeeps}"></option>
+                    <option value="MINIBUS" th:text="#{transfer.minibus}"></option>
+                    <option value="ELECTRICAL_CARS" th:text="#{transfer.electrical_cars}"></option>
+                </select>
+            </div>
+
+            <div class="col-auto mb-2">
+                <select name="hotelType" class="form-control">
+                    <option value="" th:text="#{filter.hotel.all}">All Hotels</option>
+                    <option value="ONE_STAR" th:text="#{hotel.one_star}"></option>
+                    <option value="TWO_STARS" th:text="#{hotel.two_stars}"></option>
+                    <option value="THREE_STARS" th:text="#{hotel.three_stars}"></option>
+                    <option value="FOUR_STARS" th:text="#{hotel.four_stars}"></option>
+                    <option value="FIVE_STARS" th:text="#{hotel.five_stars}"></option>
+                </select>
+            </div>
+
+            <div class="col-auto mb-2">
+                <button type="submit" class="btn btn-primary" th:text="#{filter.submit}">Search</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Каталог турів -->
+    <div class="row">
         <div class="col-md-4" th:each="voucher : ${vouchers}">
-            <div class="card mb-4 shadow-sm" th:classappend="${voucher.isHot} ? 'border-danger' : ''">
-                <div class="card-header" th:classappend="${voucher.isHot} ? 'bg-danger text-white' : ''">
-                    <h5 class="my-0 font-weight-normal" th:text="${voucher.title}">Title</h5>
-                </div>
-                <div class="card-body">
-                    <h3 class="card-title pricing-card-title">$<span th:text="${voucher.price}"></span></h3>
-                    <ul class="list-unstyled mt-3 mb-4">
-                        <li><strong>Type:</strong> <span th:text="${voucher.tourType}"></span></li>
-                        <li><strong>Hotel:</strong> <span th:text="${voucher.hotelType}"></span></li>
-                        <li><strong>Status:</strong> <span class="badge badge-info" th:text="${voucher.status}"></span></li>
-                    </ul>
-                    <form th:action="@{'/web/vouchers/' + ${voucher.id} + '/order'}" method="post"
-                          th:if="${voucher.status == 'REGISTERED'}"
-                          sec:authorize="isAuthenticated()">
-                        <button type="submit" class="btn btn-lg btn-block btn-outline-primary">Order Tour</button>
-                    </form>
+            <div class="card mb-4 shadow-sm position-relative" th:classappend="${(voucher.isHot ?: false)} ? 'border-danger' : ''">
 
-                    <a sec:authorize="isAnonymous()" href="/auth/sign-in" class="btn btn-lg btn-block btn-outline-secondary">Login to Order</a>
+                <!-- Позначка гарячого туру -->
+                <span th:if="${(voucher.isHot ?: false)}" class="badge badge-danger position-absolute px-3 py-2"
+                      style="top: -10px; right: -10px; font-size: 0.9rem; z-index: 10;"
+                      th:text="#{tour.hot.badge}">HOT TOUR</span>
+
+                <div class="card-header" th:classappend="${(voucher.isHot ?: false)} ? 'bg-danger text-white' : ''">
+                    <h4 class="my-0 font-weight-normal" th:text="#{${voucher.title}}">Title</h4>
+                </div>
+                <div class="card-body text-center">
+                    <h2 class="card-title pricing-card-title">$<span th:text="${voucher.price}">0</span></h2>
+                    <p class="text-muted small" th:text="#{${voucher.description}}">Description</p>
+
+                    <ul class="list-unstyled mt-3 mb-4 text-left border-top pt-3">
+                        <li>
+                            <strong th:text="#{tour.type}">Type:</strong>
+                            <span th:text="#{ 'type.' + ${#strings.toLowerCase(voucher.tourType)} }"></span>
+                        </li>
+
+                        <li>
+                            <strong th:text="#{tour.transfer}">Transfer:</strong>
+                            <span th:text="#{ 'transfer.' + ${#strings.toLowerCase(voucher.transferType)} }"></span>
+                        </li>
+
+                        <li>
+                            <strong th:text="#{tour.hotel}">Hotel:</strong>
+                            <span th:text="#{ 'hotel.' + ${#strings.toLowerCase(voucher.hotelType)} }"></span>
+                        </li>
+
+                        <li><strong th:text="#{tour.arrival}">Arrival Date:</strong> <span th:text="${voucher.arrivalDate}"></span></li>
+                        <li><strong th:text="#{tour.eviction}">Eviction Date:</strong> <span th:text="${voucher.evictionDate}"></span></li>
+                    </ul>
+
+                    <form th:action="@{'/web/vouchers/' + ${voucher.id} + '/order'}" method="post" sec:authorize="isAuthenticated()">
+                        <button type="submit" class="btn btn-lg btn-block btn-outline-primary" th:text="#{tour.order}">Order Tour</button>
+                    </form>
                 </div>
             </div>
         </div>
+
+        <div th:if="${vouchers == null or vouchers.empty}" class="col-12 text-center text-muted">
+            <h4 th:text="#{filter.notfound}">No tours match your criteria.</h4>
+        </div>
     </div>
 </div>
+
+<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
 </body>
 </html>

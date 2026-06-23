@@ -1,7 +1,9 @@
 package com.epam.finaltask.service.impl;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import com.epam.finaltask.dto.UserDTO;
 import com.epam.finaltask.exception.ResourceNotFoundException;
@@ -12,6 +14,7 @@ import com.epam.finaltask.model.User;
 import com.epam.finaltask.repository.UserRepository;
 import com.epam.finaltask.service.UserService;
 import lombok.RequiredArgsConstructor;
+import org.modelmapper.ModelMapper;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -22,6 +25,7 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
+    private final ModelMapper modelMapper;
 
     @Override
     public UserDTO register(UserDTO userDTO) {
@@ -76,4 +80,9 @@ public class UserServiceImpl implements UserService {
         return userMapper.toUserDTO(user);
     }
 
+    public List<UserDTO> findAll() {
+        return userRepository.findAll().stream()
+                .map(u -> modelMapper.map(u, UserDTO.class))
+                .collect(Collectors.toList());
+    }
 }

@@ -21,4 +21,8 @@ public interface VoucherService {
     List<VoucherDTO> findAllByHotelType(HotelType hotelType);
 
     Page<VoucherDTO> findAll(int page, int size, String sortBy);
+    Page<VoucherDTO> findFiltered(String search, Double maxPrice, String type, String transfer, String hotel, int page, int size, String sortBy);
+    void changeStatus(String id, String status, String reason);
+    List<VoucherDTO> findAllOrdered();
+    void toggleHotStatus(String id);
 }

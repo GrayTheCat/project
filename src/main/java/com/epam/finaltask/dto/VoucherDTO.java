@@ -34,7 +34,7 @@ public class VoucherDTO {
     private LocalDate arrivalDate;
     private LocalDate evictionDate;
 
-    private UUID userId;
     private Boolean isHot;
-    
+    private UserDTO user;
+    private String cancellationReason;
 }

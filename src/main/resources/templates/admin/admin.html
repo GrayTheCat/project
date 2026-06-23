@@ -1,77 +1,262 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.w3.org/1999/xhtml" lang="en">
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Admin Dashboard</title>
+    <title th:text="#{nav.admin}">Admin Dashboard</title>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
 </head>
 <body>
-<nav class="navbar navbar-dark bg-dark"><a class="navbar-brand" href="/">Back to Home</a></nav>
-<div class="container mt-5">
-    <h2>Admin & Manager Dashboard</h2>
-    <p>Manage all tours below.</p>
 
-    <table class="table table-hover mt-4">
-        <thead class="thead-dark"><tr><th>Title</th><th>Price</th><th>Type</th><th>Status</th><th>Is Hot?</th><th>Action</th></tr></thead>
-        <tbody>
-        <tr th:each="v : ${vouchers}">
-            <td th:text="${v.title}"></td>
-            <td th:text="${v.price}"></td>
-            <td th:text="${v.tourType}"></td>
-            <td th:text="${v.status}"></td>
-            <td th:text="${v.isHot}"></td>
-            <td>
-                <button class="btn btn-sm btn-danger" th:onclick="'deleteTour(\'' + ${v.id} + '\')'">Delete</button>
-            </td>
-        </tr>
-        </tbody>
-    </table>
-</div>
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <a class="navbar-brand" href="/" th:text="#{nav.home}">Travel Agency</a>
+    <div class="ml-auto">
+        <a sec:authorize="isAuthenticated()" href="/profile" class="btn btn-success" th:text="#{nav.profile}">My Profile</a>
+        <a sec:authorize="hasRole('ADMIN')" href="/admin" class="btn btn-warning" th:text="#{nav.admin}">Admin Panel</a>
+        <a sec:authorize="isAuthenticated()" href="/auth/logout" class="btn btn-danger" th:text="#{nav.logout}">Logout</a>
+    </div>
+</nav>
 
 <div class="container mt-5">
-    <h2>Admin Dashboard</h2>
-
-    <div class="card p-3 mb-5" sec:authorize="hasRole('ADMIN')">
-        <h4>Create New Tour</h4>
-        <form action="/web/vouchers/create" method="post" class="form-inline">
-            <input type="text" name="title" class="form-control mr-2" placeholder="Title" required>
-            <input type="number" step="0.01" name="price" class="form-control mr-2" placeholder="Price" required>
-            <select name="tourType" class="form-control mr-2">
-                <option value="REST">Rest</option>
-                <option value="EXCURSION">Excursion</option>
-                <option value="SHOPPING">Shopping</option>
-            </select>
-            <button type="submit" class="btn btn-primary">Add Tour</button>
-        </form>
+    <div class="mb-3 text-right">
+        <a href="?lang=en" class="btn btn-sm btn-outline-secondary">EN</a>
+        <a href="?lang=uk" class="btn btn-sm btn-outline-secondary">UK</a>
     </div>
 
-    <h4 sec:authorize="hasRole('ADMIN')">Manage Users</h4>
-    <table class="table table-sm mb-5" sec:authorize="hasRole('ADMIN')">
-        <tr><th>Username</th><th>Email</th><th>Status</th><th>Action</th></tr>
-        <tr th:each="u : ${users}">
-            <td th:text="${u.username}"></td>
-            <td th:text="${u.email}"></td>
-            <td th:text="${u.active ? 'Active' : 'Blocked'}"></td>
-            <td>
-                <form th:action="@{'/web/users/' + ${u.username} + '/block'}" method="post">
-                    <button type="submit" class="btn btn-sm" th:classappend="${u.active ? 'btn-danger' : 'btn-success'}"
-                            th:text="${u.active ? 'Block' : 'Unblock'}"></button>
+    <h2 class="mb-4" th:text="#{nav.admin}">Admin Dashboard</h2>
+
+    <ul class="nav nav-tabs" id="adminTabs" role="tablist">
+        <li class="nav-item">
+            <a class="nav-link active" id="tours-tab" data-toggle="tab" href="#tours" role="tab" th:text="#{admin.tab.tours}">Manage Tours</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" id="users-tab" data-toggle="tab" href="#users" role="tab" th:text="#{admin.tab.users}">Manage Users</a>
+        </li>
+    </ul>
+
+    <div class="tab-content bg-white border border-top-0 p-4 mb-5" id="adminTabsContent">
+
+        <div class="tab-pane fade show active" id="tours" role="tabpanel">
+
+            <!-- ФОРМА СТВОРЕННЯ НОВОГО ТУРУ -->
+            <div class="card bg-light p-4 mb-4">
+                <h5 class="mb-3" th:text="#{admin.tour.create}">Create New Tour</h5>
+                <form action="/web/vouchers/create" method="post">
+                    <div class="form-row">
+                        <div class="col-md-4 mb-3">
+                            <label class="small text-muted mb-0" th:text="#{tour.title}">Title</label>
+                            <input type="text" name="title" class="form-control" th:placeholder="#{tour.title}" required>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="small text-muted mb-0" th:text="#{tour.price}">Price</label>
+                            <input type="number" step="0.01" name="price" class="form-control" placeholder="0.00" required>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="small text-muted mb-0" th:text="#{tour.type}">Tour Type</label>
+                            <select name="tourType" class="form-control" required>
+                                <option value="" disabled selected th:text="#{admin.tour.selectType}">Select Tour Type</option>
+                                <option value="HEALTH" th:text="#{type.health}"></option>
+                                <option value="SPORTS" th:text="#{type.sports}"></option>
+                                <option value="LEISURE" th:text="#{type.leisure}"></option>
+                                <option value="SAFARI" th:text="#{type.safari}"></option>
+                                <option value="WINE" th:text="#{type.wine}"></option>
+                                <option value="ECO" th:text="#{type.eco}"></option>
+                                <option value="ADVENTURE" th:text="#{type.adventure}"></option>
+                                <option value="CULTURAL" th:text="#{type.cultural}"></option>
+                            </select>
+                        </div>
+                        <div class="col-md-12 mb-3">
+                            <label class="small text-muted mb-0" th:text="#{tour.description}">Description</label>
+                            <textarea name="description" class="form-control" th:placeholder="#{tour.description}" rows="2" required></textarea>
+                        </div>
+
+                        <!-- Вирівняний другий ряд: Транспорт, Готель, Дати -->
+                        <div class="col-md-3 mb-3">
+                            <label class="small text-muted mb-0" th:text="#{tour.transfer}">Transfer</label>
+                            <select name="transferType" class="form-control" required>
+                                <option value="" disabled selected th:text="#{admin.tour.selectTransfer}">Select Transfer</option>
+                                <option value="BUS" th:text="#{transfer.bus}"></option>
+                                <option value="TRAIN" th:text="#{transfer.train}"></option>
+                                <option value="PLANE" th:text="#{transfer.plane}"></option>
+                                <option value="SHIP" th:text="#{transfer.ship}"></option>
+                                <option value="PRIVATE_CAR" th:text="#{transfer.private_car}"></option>
+                                <option value="JEEPS" th:text="#{transfer.jeeps}"></option>
+                                <option value="MINIBUS" th:text="#{transfer.minibus}"></option>
+                                <option value="ELECTRICAL_CARS" th:text="#{transfer.electrical_cars}"></option>
+                            </select>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label class="small text-muted mb-0" th:text="#{tour.hotel}">Hotel</label>
+                            <select name="hotelType" class="form-control" required>
+                                <option value="" disabled selected th:text="#{admin.tour.selectHotel}">Select Hotel</option>
+                                <option value="ONE_STAR" th:text="#{hotel.one_star}"></option>
+                                <option value="TWO_STARS" th:text="#{hotel.two_stars}"></option>
+                                <option value="THREE_STARS" th:text="#{hotel.three_stars}"></option>
+                                <option value="FOUR_STARS" th:text="#{hotel.four_stars}"></option>
+                                <option value="FIVE_STARS" th:text="#{hotel.five_stars}"></option>
+                            </select>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label class="small text-muted mb-0" th:text="#{tour.arrival}">Arrival Date</label>
+                            <input type="date" name="arrivalDate" class="form-control" required>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label class="small text-muted mb-0" th:text="#{tour.eviction}">Eviction Date</label>
+                            <input type="date" name="evictionDate" class="form-control" required>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-success" th:text="#{admin.tour.add}">Add Tour</button>
                 </form>
-            </td>
-        </tr>
-    </table>
+            </div>
+
+            <!-- ТАБЛИЦЯ ТУРІВ -->
+            <table class="table table-hover">
+                <thead class="thead-dark">
+                <tr>
+                    <th th:text="#{tour.title}">Title</th>
+                    <th th:text="#{tour.price}">Price</th>
+                    <th th:text="#{admin.tour.dates}">Dates</th>
+                    <th th:text="#{tour.action}">Actions</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="v : ${vouchers}">
+                    <td th:text="${v.title.startsWith('tour.')} ? #{${v.title}} : ${v.title}"></td>
+                    <td>$<span th:text="${v.price}"></span></td>
+                    <td class="small">
+                        <div th:text="${v.arrivalDate}"></div>
+                        <div th:text="${v.evictionDate}"></div>
+                    </td>
+                    <td>
+                        <button class="btn btn-sm btn-primary" data-toggle="modal" th:data-target="'#editModal' + ${v.id}" th:text="#{admin.tour.editBtn}">Edit</button>
+                        <button class="btn btn-sm btn-danger" th:data-id="${v.id}" onclick="deleteTour(this.getAttribute('data-id'))" th:text="#{admin.tour.deleteBtn}">Delete</button>
+
+                        <!-- МОДАЛЬНЕ ВІКНО РЕДАГУВАННЯ -->
+                        <div class="modal fade" th:id="'editModal' + ${v.id}" tabindex="-1" role="dialog">
+                            <div class="modal-dialog modal-lg" role="document">
+                                <div class="modal-content">
+                                    <form th:action="@{'/web/vouchers/' + ${v.id} + '/update'}" method="post">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title" th:text="#{admin.tour.edit}">Edit Tour</h5>
+                                            <button type="button" class="close" data-dismiss="modal">&times;</button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <input type="hidden" name="status" th:value="${v.status}">
+                                            <input type="hidden" name="isHot" th:value="${v.isHot}">
+
+                                            <div class="form-row">
+                                                <div class="col-md-6 form-group">
+                                                    <label th:text="#{tour.title}">Title</label>
+                                                    <input type="text" name="title" class="form-control" th:value="${v.title}" required>
+                                                </div>
+                                                <div class="col-md-6 form-group">
+                                                    <label th:text="#{tour.price}">Price</label>
+                                                    <input type="number" step="0.01" name="price" class="form-control" th:value="${v.price}" required>
+                                                </div>
+                                                <div class="col-md-12 form-group">
+                                                    <label th:text="#{tour.description}">Description</label>
+                                                    <textarea name="description" class="form-control" rows="2" th:text="${v.description}" required></textarea>
+                                                </div>
+                                                <div class="col-md-4 form-group">
+                                                    <label th:text="#{tour.type}">Tour Type</label>
+                                                    <select name="tourType" class="form-control">
+                                                        <option value="HEALTH" th:selected="${v.tourType == 'HEALTH'}" th:text="#{type.health}"></option>
+                                                        <option value="SPORTS" th:selected="${v.tourType == 'SPORTS'}" th:text="#{type.sports}"></option>
+                                                        <option value="LEISURE" th:selected="${v.tourType == 'LEISURE'}" th:text="#{type.leisure}"></option>
+                                                        <option value="SAFARI" th:selected="${v.tourType == 'SAFARI'}" th:text="#{type.safari}"></option>
+                                                        <option value="WINE" th:selected="${v.tourType == 'WINE'}" th:text="#{type.wine}"></option>
+                                                        <option value="ECO" th:selected="${v.tourType == 'ECO'}" th:text="#{type.eco}"></option>
+                                                        <option value="ADVENTURE" th:selected="${v.tourType == 'ADVENTURE'}" th:text="#{type.adventure}"></option>
+                                                        <option value="CULTURAL" th:selected="${v.tourType == 'CULTURAL'}" th:text="#{type.cultural}"></option>
+                                                    </select>
+                                                </div>
+                                                <div class="col-md-4 form-group">
+                                                    <label th:text="#{tour.transfer}">Transfer</label>
+                                                    <select name="transferType" class="form-control">
+                                                        <option value="BUS" th:selected="${v.transferType == 'BUS'}" th:text="#{transfer.bus}"></option>
+                                                        <option value="TRAIN" th:selected="${v.transferType == 'TRAIN'}" th:text="#{transfer.train}"></option>
+                                                        <option value="PLANE" th:selected="${v.transferType == 'PLANE'}" th:text="#{transfer.plane}"></option>
+                                                        <option value="SHIP" th:selected="${v.transferType == 'SHIP'}" th:text="#{transfer.ship}"></option>
+                                                        <option value="PRIVATE_CAR" th:selected="${v.transferType == 'PRIVATE_CAR'}" th:text="#{transfer.private_car}"></option>
+                                                        <option value="JEEPS" th:selected="${v.transferType == 'JEEPS'}" th:text="#{transfer.jeeps}"></option>
+                                                        <option value="MINIBUS" th:selected="${v.transferType == 'MINIBUS'}" th:text="#{transfer.minibus}"></option>
+                                                        <option value="ELECTRICAL_CARS" th:selected="${v.transferType == 'ELECTRICAL_CARS'}" th:text="#{transfer.electrical_cars}"></option>
+                                                    </select>
+                                                </div>
+                                                <div class="col-md-4 form-group">
+                                                    <label th:text="#{tour.hotel}">Hotel</label>
+                                                    <select name="hotelType" class="form-control">
+                                                        <option value="ONE_STAR" th:selected="${v.hotelType == 'ONE_STAR'}" th:text="#{hotel.one_star}"></option>
+                                                        <option value="TWO_STARS" th:selected="${v.hotelType == 'TWO_STARS'}" th:text="#{hotel.two_stars}"></option>
+                                                        <option value="THREE_STARS" th:selected="${v.hotelType == 'THREE_STARS'}" th:text="#{hotel.three_stars}"></option>
+                                                        <option value="FOUR_STARS" th:selected="${v.hotelType == 'FOUR_STARS'}" th:text="#{hotel.four_stars}"></option>
+                                                        <option value="FIVE_STARS" th:selected="${v.hotelType == 'FIVE_STARS'}" th:text="#{hotel.five_stars}"></option>
+                                                    </select>
+                                                </div>
+                                                <div class="col-md-6 form-group">
+                                                    <label th:text="#{tour.arrival}">Arrival Date</label>
+                                                    <input type="date" name="arrivalDate" class="form-control" th:value="${v.arrivalDate}" required>
+                                                </div>
+                                                <div class="col-md-6 form-group">
+                                                    <label th:text="#{tour.eviction}">Eviction Date</label>
+                                                    <input type="date" name="evictionDate" class="form-control" th:value="${v.evictionDate}" required>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="submit" class="btn btn-success" th:text="#{manager.save}">Save Changes</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="tab-pane fade" id="users" role="tabpanel">
+            <table class="table table-sm">
+                <thead class="thead-light"><tr><th>Username</th><th>Email</th><th>Status</th><th th:text="#{tour.action}">Action</th></tr></thead>
+                <tbody>
+                <tr th:each="u : ${users}">
+                    <td th:text="${u.username}"></td>
+                    <td th:text="${u.email}"></td>
+                    <td>
+                        <span class="badge" th:classappend="${u.active ? 'badge-success' : 'badge-danger'}" th:text="${u.active ? 'Active' : 'Blocked'}"></span>
+                    </td>
+                    <td>
+                        <form th:action="@{'/web/users/' + ${u.username} + '/block'}" method="post"
+                              th:if="${u.role != null and u.role != 'ADMIN'}">
+                            <button type="submit" class="btn btn-sm" th:classappend="${u.active ? 'btn-outline-danger' : 'btn-outline-success'}"
+                                    th:text="${u.active ? 'Block' : 'Unblock'}"></button>
+                        </form>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
 </div>
+
+<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
 
 <script>
     function deleteTour(id) {
-        if(confirm("Are you sure?")) {
-            fetch('/api/vouchers/' + id, { method: 'DELETE' })
-            .then(res => {
+        if(confirm("Are you sure you want to delete this tour?")) {
+            fetch('/api/vouchers/' + id, { method: 'DELETE' }).then(res => {
                 if(res.ok) window.location.reload();
-                else alert("Error deleting tour");
             });
         }
     }
+    $(document).ready(function() {
+        let hash = window.location.hash;
+        if (hash) {
+            $('.nav-tabs a[href="' + hash + '"]').tab('show');
+        }
+    });
 </script>
 </body>
 </html>

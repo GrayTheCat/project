@@ -1,32 +1,70 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      lang="en">
 <head>
-  <title>Dashboard</title>
-  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+    <meta charset="UTF-8">
+    <title th:text="#{nav.dashboard}">Dashboard</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
 </head>
 <body>
 
-<h1 align="center">Dashboard</h1>
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <a class="navbar-brand" href="/" th:text="#{nav.home}">Travel Agency</a>
+    <div class="ml-auto">
+        <a sec:authorize="isAnonymous()" href="/auth/sign-in" class="btn btn-outline-light" th:text="#{nav.signin}">Sign in</a>
+        <a sec:authorize="isAnonymous()" href="/auth/sign-up" class="btn btn-primary" th:text="#{nav.signup}">Sign up</a>
 
-<div class="container">
-  <table class="table table-bordered">
-    <thead>
-    <tr>
-      <th scope="col">#ID</th>
-      <th scope="col">Voucher Title</th>
-      <th scope="col">Description</th>
-    </tr>
-    </thead>
-    <tbody>
-    <!-- Fixed loop and columns to match the supposed properties -->
-    <tr th:each="voucher : ${vouchers}">
-      <td th:text="${voucher.id}"></td>
-      <td th:text="${voucher.title}"></td>
-      <td th:text="${voucher.description}"></td>
-      <td><a th:href="@{/vouchers/order}" class="btn btn-outline-success me-2" type="button">Order</a></td>
-    </tr>
-    </tbody>
-  </table>
+        <a sec:authorize="isAuthenticated()" href="/profile" class="btn btn-success" th:text="#{nav.profile}">My Profile</a>
+        <a sec:authorize="hasAnyRole('ADMIN', 'MANAGER')" href="/admin" class="btn btn-warning" th:text="#{nav.admin}">Admin Panel</a>
+        <a sec:authorize="isAuthenticated()" href="/auth/logout" class="btn btn-danger" th:text="#{nav.logout}">Logout</a>
+    </div>
+</nav>
+
+<div class="container mt-4">
+    <div class="mb-3 text-right">
+        <a href="?lang=en" class="btn btn-sm btn-outline-secondary">EN</a>
+        <a href="?lang=uk" class="btn btn-sm btn-outline-secondary">UK</a>
+    </div>
+
+    <h2 class="mb-4" th:text="#{nav.dashboard}">Dashboard</h2>
+
+    <table class="table table-bordered table-hover bg-white">
+        <thead class="thead-dark">
+        <tr>
+            <th scope="col">#ID</th>
+            <th scope="col" th:text="#{tour.title}">Voucher Title</th>
+            <th scope="col" th:text="#{tour.description}">Description</th>
+            <th scope="col" th:text="#{tour.price}">Price</th>
+            <th scope="col" th:text="#{tour.status}">Status</th>
+            <th scope="col" th:text="#{tour.action}">Action</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="voucher : ${vouchers}">
+            <td th:text="${voucher.id}"></td>
+            <td th:text="${voucher.title}"></td>
+            <td th:text="${voucher.description}"></td>
+            <td>$<span th:text="${voucher.price}"></span></td>
+            <td>
+                <span class="badge" th:classappend="${voucher.status == 'REGISTERED' ? 'badge-info' : (voucher.status == 'PAID' ? 'badge-success' : 'badge-danger')}"
+                      th:text="${voucher.status}"></span>
+            </td>
+            <td>
+                <form th:action="@{'/web/vouchers/' + ${voucher.id} + '/order'}" method="post"
+                      th:if="${voucher.status == 'REGISTERED'}"
+                      sec:authorize="isAuthenticated()">
+                    <button type="submit" class="btn btn-sm btn-outline-success" th:text="#{tour.order}">Order</button>
+                </form>
+
+                <a th:if="${voucher.status == 'REGISTERED'}" sec:authorize="isAnonymous()" href="/auth/sign-in" class="btn btn-sm btn-outline-secondary" th:text="#{nav.signin}">Sign in</a>
+            </td>
+        </tr>
+        <tr th:if="${vouchers == null or vouchers.empty}">
+            <td colspan="6" class="text-center text-muted" th:text="#{filter.notfound}">No tours available.</td>
+        </tr>
+        </tbody>
+    </table>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
