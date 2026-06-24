@@ -59,6 +59,14 @@ public class GlobalExceptionHandler {
         return handleException(HttpStatus.BAD_REQUEST, ex); // Видасть 400 Bad Request
     }
 
+    @ExceptionHandler(org.springframework.security.access.AccessDeniedException.class)
+    public ModelAndView handleAccessDenied(org.springframework.security.access.AccessDeniedException ex) {
+        log.warn("Access denied: {}", ex.getMessage());
+        ModelAndView view = new ModelAndView("error");
+        view.addObject("status", HttpStatus.FORBIDDEN.value());
+        return view;
+    }
+
     private ModelAndView handleException(HttpStatus status, Exception ex){
         log.error(ex.getMessage());
         ModelAndView view = new ModelAndView("error");

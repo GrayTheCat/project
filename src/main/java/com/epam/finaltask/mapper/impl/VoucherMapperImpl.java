@@ -1,6 +1,7 @@
-package com.epam.finaltask.mapper;
+package com.epam.finaltask.mapper.impl;
 
 import com.epam.finaltask.dto.VoucherDTO;
+import com.epam.finaltask.mapper.VoucherMapper;
 import com.epam.finaltask.model.Voucher;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
@@ -26,11 +27,9 @@ public class VoucherMapperImpl implements VoucherMapper {
             return null;
         }
         VoucherDTO dto = modelMapper.map(voucher, VoucherDTO.class);
-
         if (voucher.getUser() != null) {
             dto.getUser().setId(voucher.getUser().getId().toString());
         }
-
         return dto;
     }
 }

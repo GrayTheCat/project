@@ -6,6 +6,7 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.lang.NonNull;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -17,6 +18,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
@@ -44,6 +46,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         final String authHeader = request.getHeader("Authorization");
+
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            log.debug("Security Event: Request to {} with JWT token present", request.getRequestURI());
+        } else {
+            if (request.getRequestURI().startsWith("/admin") || request.getRequestURI().startsWith("/profile")) {
+                log.warn("Security Event: Anonymous request to protected resource: {}", request.getRequestURI());
+            }
+        }
+
         if (jwt == null && authHeader != null && authHeader.startsWith("Bearer ")) {
             jwt = authHeader.substring(7);
         }

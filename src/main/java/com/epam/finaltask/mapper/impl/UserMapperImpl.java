@@ -1,6 +1,7 @@
-package com.epam.finaltask.mapper;
+package com.epam.finaltask.mapper.impl;
 
 import com.epam.finaltask.dto.UserDTO;
+import com.epam.finaltask.mapper.UserMapper;
 import com.epam.finaltask.model.User;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;

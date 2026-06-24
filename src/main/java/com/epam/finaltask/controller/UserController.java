@@ -22,7 +22,7 @@ public class UserController {
 
     @GetMapping("/profile")
     public String profile(Model model, Principal principal) {
-        if (principal == null) return "redirect:/auth/sign-in";
+        //if (principal == null) return "redirect:/auth/sign-in";
         UserDTO user = userService.getUserByUsername(principal.getName());
         model.addAttribute("user", user);
         model.addAttribute("myVouchers", voucherService.findAllByUserId(user.getId()));

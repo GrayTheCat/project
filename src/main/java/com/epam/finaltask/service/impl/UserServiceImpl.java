@@ -76,13 +76,6 @@ public class UserServiceImpl implements UserService {
         return userMapper.toUserDTO(userRepository.save(user));
     }
 
-    @Override
-    public UserDTO getUserById(UUID id) {
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
-        return userMapper.toUserDTO(user);
-    }
-
     @PreAuthorize("hasRole('ADMIN')")
     public List<UserDTO> findAll() {
         return userRepository.findAll().stream()
