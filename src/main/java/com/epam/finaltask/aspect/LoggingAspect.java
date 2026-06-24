@@ -2,10 +2,7 @@ package com.epam.finaltask.aspect;
 
 
 import org.aspectj.lang.JoinPoint;
-import org.aspectj.lang.annotation.AfterThrowing;
-import org.aspectj.lang.annotation.Aspect;
-import org.aspectj.lang.annotation.Before;
-import org.aspectj.lang.annotation.Pointcut;
+import org.aspectj.lang.annotation.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -16,8 +13,14 @@ public class LoggingAspect {
 
     private final Logger log = LoggerFactory.getLogger(this.getClass());
 
-    @Pointcut("within(com.epam.finaltask.restcontroller..*) || within(com.epam.finaltask.service.impl..*)")
+    @Pointcut("within(com.epam.finaltask.restcontroller..*) || within(com.epam.finaltask.controller..*) || within(com.epam.finaltask.service.impl..*)")
     public void applicationPackagePointcut() {
+    }
+
+    @AfterReturning(pointcut = "applicationPackagePointcut()", returning = "result")
+    public void logAfterReturning(JoinPoint joinPoint, Object result) {
+        log.info("Exit: {}.{}() with result = {}", joinPoint.getSignature().getDeclaringTypeName(),
+                joinPoint.getSignature().getName(), result);
     }
 
     @Before("applicationPackagePointcut()")
