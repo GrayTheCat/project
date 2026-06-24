@@ -18,20 +18,20 @@ public class UserDTO {
 
     private String id;
 
-    @NotBlank(message = "Username cannot be blank")
-    @Size(min = 3, max = 50, message = "Username must be between 3 and 50 characters")
+    @NotBlank(message = "{user.username.notblank}")
+    @Size(min = 3, max = 50, message = "{user.username.size}")
     private String username;
 
-    @NotBlank(message = "First name is required")
+    @NotBlank(message = "{user.firstname.notblank}")
     private String firstName;
 
-    @NotBlank(message = "Last name is required")
+    @NotBlank(message = "{user.lastname.notblank}")
     private String lastName;
 
-    @NotBlank(message = "Email is required")
+    @NotBlank(message = "{user.email.notblank}")
     private String email;
 
-    @NotBlank(message = "Password cannot be blank")
+    @NotBlank(message = "{user.password.notblank}")
     @ValidPassword
     private String password;
 

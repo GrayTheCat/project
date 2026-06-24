@@ -216,21 +216,25 @@
         </div>
 
         <div class="tab-pane fade" id="users" role="tabpanel">
-            <table class="table table-sm">
+            <table class="table table-sm, table-users">
                 <thead class="thead-light"><tr><th>Username</th><th>Email</th><th>Status</th><th th:text="#{tour.action}">Action</th></tr></thead>
                 <tbody>
                 <tr th:each="u : ${users}">
                     <td th:text="${u.username}"></td>
                     <td th:text="${u.email}"></td>
                     <td>
-                        <span class="badge" th:classappend="${u.active ? 'badge-success' : 'badge-danger'}" th:text="${u.active ? 'Active' : 'Blocked'}"></span>
+                        <span th:id="'status-' + ${u.username}"
+                              th:text="${u.active} ? #{user.status.active} : #{user.status.blocked}"
+                              th:class="${u.active} ? 'badge badge-success' : 'badge badge-danger'">
+                        </span>
                     </td>
                     <td>
-                        <form th:action="@{'/web/users/' + ${u.username} + '/block'}" method="post"
-                              th:if="${u.role != null and u.role != 'ADMIN'}">
-                            <button type="submit" class="btn btn-sm" th:classappend="${u.active ? 'btn-outline-danger' : 'btn-outline-success'}"
-                                    th:text="${u.active ? 'Block' : 'Unblock'}"></button>
-                        </form>
+                        <button th:data-username="${u.username}"
+                                th:data-block-text="#{user.status.block}"
+                                th:data-unblock-text="#{user.status.unblock}"
+                                onclick="toggleUserStatus(this)"
+                                class="btn btn-secondary"> <span th:text="${u.active} ? #{user.status.block} : #{user.status.unblock}">Block</span>
+                        </button>
                     </td>
                 </tr>
                 </tbody>
@@ -257,6 +261,35 @@
             $('.nav-tabs a[href="' + hash + '"]').tab('show');
         }
     });
+    function toggleUserStatus(buttonElement) {
+        const username = buttonElement.getAttribute('data-username');
+        const statusSpan = document.getElementById('status-' + username);
+        const textBlock = buttonElement.getAttribute('data-block-text');
+        const textUnblock = buttonElement.getAttribute('data-unblock-text');
+        fetch('/web/users/' + username + '/block', { method: 'POST' })
+            .then(response => response.json())
+            .then(data => {
+                if (data.active) {
+                    statusSpan.innerText = '[[#{user.status.active}]]';
+                    statusSpan.className = 'badge badge-success';
+                    buttonElement.querySelector('span').innerText = textBlock;
+                } else {
+                    statusSpan.innerText = '[[#{user.status.blocked}]]';
+                    statusSpan.className = 'badge badge-danger';
+                    buttonElement.querySelector('span').innerText = textUnblock;
+                }
+            });
+    }
 </script>
+<style>
+    .table-users th:nth-child(3), .table-users td:nth-child(3) {
+        width: 120px;
+        text-align: center;
+    }
+    .table-users th:nth-child(4), .table-users td:nth-child(4) {
+        width: 150px;
+        text-align: center;
+    }
+</style>
 </body>
 </html>

@@ -18,12 +18,12 @@ public class VoucherDTO {
 
     private UUID id;
 
-    @NotBlank(message = "Title is required")
+    @NotBlank(message = "{voucher.title.notblank}")
     private String title;
 
     private String description;
 
-    @Min(value = 0, message = "Price cannot be negative")
+    @Min(value = 0, message = "{voucher.price.min}")
     private Double price;
 
     private String tourType;

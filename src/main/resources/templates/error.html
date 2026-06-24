@@ -2,16 +2,16 @@
 <html xmlns:th="http://www.thymeleaf.org" lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Error</title>
+    <title th:text="#{error.title}">Error</title>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
 </head>
 <body>
 <div class="container text-center mt-5">
-    <h1 class="display-1 text-danger">Oops!</h1>
-    <h2>Something went wrong</h2>
-    <p th:text="${error} ?: 'An unexpected error occurred.'"></p>
-    <p th:text="'Status Code: ' + ${status}"></p>
-    <a href="/" class="btn btn-primary mt-3">Go Back to Home</a>
+    <h1 class="display-1 text-danger" th:text="#{error.oops}">Oops!</h1>
+    <h2 th:text="#{error.something.went.wrong}">Something went wrong</h2>
+    <p th:text="${error} != null ? (${#messages.msgOrNull(error)} ?: ${error}) : #{error.unexpected}"></p>
+    <p th:text="#{error.status} + ': ' + ${status}"></p>
+    <a href="/" class="btn btn-primary mt-3" th:text="#{error.go.back}">Go Back to Home</a>
 </div>
 </body>
 </html>

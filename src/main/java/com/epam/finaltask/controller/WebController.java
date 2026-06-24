@@ -1,8 +1,11 @@
 package com.epam.finaltask.controller;
 
+import org.springframework.security.authentication.DisabledException;
+import org.springframework.security.authentication.LockedException;
+import org.springframework.security.core.AuthenticationException;
 import com.epam.finaltask.dto.UserDTO;
 import com.epam.finaltask.dto.VoucherDTO;
-import com.epam.finaltask.model.User;
+import com.epam.finaltask.exception.UserAlreadyExistsException;
 import com.epam.finaltask.service.UserService;
 import com.epam.finaltask.service.VoucherService;
 import com.epam.finaltask.token.JwtService;
@@ -23,6 +26,8 @@ import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
 import java.security.Principal;
+import java.util.Collections;
+import java.util.Map;
 
 @Controller
 @RequiredArgsConstructor
@@ -69,29 +74,37 @@ public class WebController {
     @PostMapping("/auth/web-login")
     public String webLogin(@RequestParam String username, @RequestParam String password, HttpServletResponse response) {
         try {
-            authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(username, password));
             UserDetails user = userDetailsService.loadUserByUsername(username);
+            if (!user.isEnabled() || !user.isAccountNonLocked()) {
+                return "redirect:/auth/sign-in?error=user.blocked";
+            }
+            authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(username, password));
             String token = jwtService.generateToken(user);
-
             Cookie cookie = new Cookie("JWT", token);
             cookie.setHttpOnly(true);
             cookie.setPath("/");
             cookie.setMaxAge(24 * 60 * 60);
             response.addCookie(cookie);
-
             return "redirect:/profile";
         } catch (Exception e) {
-            return "redirect:/auth/sign-in?error";
+            return "redirect:/auth/sign-in?error=login.error";
         }
     }
 
     @PostMapping("/auth/web-register")
-    public String webRegister(@Valid @ModelAttribute("userDTO") UserDTO userDTO, BindingResult bindingResult) {
+    public String webRegister(@Valid @ModelAttribute("userDTO") UserDTO userDTO,
+                              BindingResult bindingResult,
+                              Model model) {
         if (bindingResult.hasErrors()) {
             return "auth/sign-up";
         }
-        userService.register(userDTO);
-        return "redirect:/auth/sign-in?registered";
+        try {
+            userService.register(userDTO);
+            return "redirect:/auth/sign-in?registered";
+        } catch (UserAlreadyExistsException e) {
+            model.addAttribute("errorMessage", "user.already.exists");
+            return "auth/sign-up";
+        }
     }
 
     @GetMapping("/auth/logout")
@@ -129,11 +142,12 @@ public class WebController {
     }
 
     @PostMapping("/web/users/{username}/block")
-    public String toggleBlockUser(@PathVariable String username) {
+    @ResponseBody
+    public Map<String, Boolean> toggleBlockUser(@PathVariable String username) {
         UserDTO userDTO = userService.getUserByUsername(username);
         userDTO.setActive(!userDTO.isActive());
         userService.changeAccountStatus(userDTO);
-        return "redirect:/admin";
+        return Collections.singletonMap("active", userDTO.isActive());
     }
 
     @PostMapping("/web/vouchers/create")
