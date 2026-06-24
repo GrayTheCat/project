@@ -15,6 +15,7 @@ import com.epam.finaltask.repository.UserRepository;
 import com.epam.finaltask.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -45,6 +46,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @PreAuthorize("isAuthenticated()")
     public UserDTO updateUser(String username, UserDTO userDTO) {
         User existingUser = userRepository.findUserByUsername(username)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
@@ -65,6 +67,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @PreAuthorize("hasRole('ADMIN')")
     public UserDTO changeAccountStatus(UserDTO userDTO) {
         userRepository.findById(UUID.fromString(userDTO.getId()))
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
@@ -80,6 +83,7 @@ public class UserServiceImpl implements UserService {
         return userMapper.toUserDTO(user);
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     public List<UserDTO> findAll() {
         return userRepository.findAll().stream()
                 .map(u -> modelMapper.map(u, UserDTO.class))

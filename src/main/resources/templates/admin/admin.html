@@ -8,7 +8,7 @@
 <body>
 
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-    <a class="navbar-brand" href="/" th:text="#{nav.home}">Travel Agency</a>
+    <a class="navbar-brand" href="/admin" th:text="#{nav.home}">Travel Agency</a>
     <div class="ml-auto">
         <a sec:authorize="isAuthenticated()" href="/profile" class="btn btn-success" th:text="#{nav.profile}">My Profile</a>
         <a sec:authorize="hasRole('ADMIN')" href="/admin" class="btn btn-warning" th:text="#{nav.admin}">Admin Panel</a>
@@ -18,8 +18,8 @@
 
 <div class="container mt-5">
     <div class="mb-3 text-right">
-        <a href="?lang=en" class="btn btn-sm btn-outline-secondary">EN</a>
-        <a href="?lang=uk" class="btn btn-sm btn-outline-secondary">UK</a>
+        <a href="?lang=en" class="btn btn-sm btn-outline-secondary lang-switch">EN</a>
+        <a href="?lang=uk" class="btn btn-sm btn-outline-secondary lang-switch">UK</a>
     </div>
 
     <h2 class="mb-4" th:text="#{nav.admin}">Admin Dashboard</h2>
@@ -27,6 +27,9 @@
     <ul class="nav nav-tabs" id="adminTabs" role="tablist">
         <li class="nav-item">
             <a class="nav-link active" id="tours-tab" data-toggle="tab" href="#tours" role="tab" th:text="#{admin.tab.tours}">Manage Tours</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" id="orders-tab" data-toggle="tab" href="#orders" role="tab" th:text="#{manager.tab.orders}">User Orders</a>
         </li>
         <li class="nav-item">
             <a class="nav-link" id="users-tab" data-toggle="tab" href="#users" role="tab" th:text="#{admin.tab.users}">Manage Users</a>
@@ -37,7 +40,6 @@
 
         <div class="tab-pane fade show active" id="tours" role="tabpanel">
 
-            <!-- ФОРМА СТВОРЕННЯ НОВОГО ТУРУ -->
             <div class="card bg-light p-4 mb-4">
                 <h5 class="mb-3" th:text="#{admin.tour.create}">Create New Tour</h5>
                 <form action="/web/vouchers/create" method="post">
@@ -48,7 +50,7 @@
                         </div>
                         <div class="col-md-4 mb-3">
                             <label class="small text-muted mb-0" th:text="#{tour.price}">Price</label>
-                            <input type="number" step="0.01" name="price" class="form-control" placeholder="0.00" required>
+                            <input type="number" step="0.01" min="0.01" name="price" class="form-control" placeholder="0.00" required>
                         </div>
                         <div class="col-md-4 mb-3">
                             <label class="small text-muted mb-0" th:text="#{tour.type}">Tour Type</label>
@@ -69,7 +71,6 @@
                             <textarea name="description" class="form-control" th:placeholder="#{tour.description}" rows="2" required></textarea>
                         </div>
 
-                        <!-- Вирівняний другий ряд: Транспорт, Готель, Дати -->
                         <div class="col-md-3 mb-3">
                             <label class="small text-muted mb-0" th:text="#{tour.transfer}">Transfer</label>
                             <select name="transferType" class="form-control" required>
@@ -108,7 +109,10 @@
                 </form>
             </div>
 
-            <!-- ТАБЛИЦЯ ТУРІВ -->
+            <div class="d-flex justify-content-end mt-2 mb-2">
+                <input type="text" id="search-admin-tours" class="form-control w-25" th:placeholder="#{admin.search}">
+            </div>
+
             <table class="table table-hover">
                 <thead class="thead-dark">
                 <tr>
@@ -118,8 +122,8 @@
                     <th th:text="#{tour.action}">Actions</th>
                 </tr>
                 </thead>
-                <tbody>
-                <tr th:each="v : ${vouchers}">
+                <tbody id="tbody-admin-tours">
+                <tr th:each="v : ${vouchers}" th:if="${v.user == null}" class="data-row">
                     <td th:text="${v.title.startsWith('tour.')} ? #{${v.title}} : ${v.title}"></td>
                     <td>$<span th:text="${v.price}"></span></td>
                     <td class="small">
@@ -128,9 +132,16 @@
                     </td>
                     <td>
                         <button class="btn btn-sm btn-primary" data-toggle="modal" th:data-target="'#editModal' + ${v.id}" th:text="#{admin.tour.editBtn}">Edit</button>
-                        <button class="btn btn-sm btn-danger" th:data-id="${v.id}" onclick="deleteTour(this.getAttribute('data-id'))" th:text="#{admin.tour.deleteBtn}">Delete</button>
+                        <button class="btn btn-sm btn-danger" th:data-id="${v.id}" onclick="deleteTour(this.getAttribute('data-id'), this)" th:text="#{admin.tour.deleteBtn}">Delete</button>
 
-                        <!-- МОДАЛЬНЕ ВІКНО РЕДАГУВАННЯ -->
+                        <span th:id="'hot-badge-' + ${v.id}" class="badge mr-2"
+                              th:classappend="${(v.isHot ?: false) ? 'badge-danger' : 'badge-secondary'}"
+                              th:text="${(v.isHot ?: false) ? #messages.msg('tour.hot') : #messages.msg('tour.normal')}"></span>
+
+                        <form th:action="@{'/web/vouchers/' + ${v.id} + '/hot'}" method="post" class="d-inline">
+                            <button type="button" class="btn btn-sm btn-outline-warning" th:data-id="${v.id}" onclick="toggleHotAjax(this)" th:text="#{manager.toggle}">Toggle</button>
+                        </form>
+
                         <div class="modal fade" th:id="'editModal' + ${v.id}" tabindex="-1" role="dialog">
                             <div class="modal-dialog modal-lg" role="document">
                                 <div class="modal-content">
@@ -150,7 +161,7 @@
                                                 </div>
                                                 <div class="col-md-6 form-group">
                                                     <label th:text="#{tour.price}">Price</label>
-                                                    <input type="number" step="0.01" name="price" class="form-control" th:value="${v.price}" required>
+                                                    <input type="number" step="0.01" min="0.01" name="price" class="form-control" th:value="${v.price}" required>
                                                 </div>
                                                 <div class="col-md-12 form-group">
                                                     <label th:text="#{tour.description}">Description</label>
@@ -213,20 +224,65 @@
                 </tr>
                 </tbody>
             </table>
+            <ul id="pag-admin-tours" class="pagination pagination-sm justify-content-center mt-3"></ul>
+        </div>
+
+        <div class="tab-pane fade" id="orders" role="tabpanel">
+            <div class="d-flex justify-content-end mt-2 mb-2">
+                <input type="text" id="search-admin-orders" class="form-control w-25" th:placeholder="#{admin.search}">
+            </div>
+
+            <table class="table table-hover shadow-sm">
+                <thead class="thead-light">
+                <tr>
+                    <th th:text="#{tour.title}">Tour</th>
+                    <th th:text="#{manager.client}">Client</th>
+                    <th th:text="#{tour.price}">Price</th>
+                    <th th:text="#{manager.status.action}">Update Status</th>
+                </tr>
+                </thead>
+                <tbody id="tbody-admin-orders">
+                <tr th:each="v : ${orderedVouchers}" class="data-row">
+                    <td th:text="#{${v.title}}"></td>
+                    <td class="font-weight-bold text-primary" th:text="${v.user != null ? v.user.email : 'Unknown'}"></td>
+                    <td>$<span th:text="${v.price}"></span></td>
+
+                    <td>
+                        <form onsubmit="updateStatusAjax(event, this)" th:data-id="${v.id}" th:action="@{'/web/vouchers/' + ${v.id} + '/status'}" method="post" class="form-inline">
+                            <select name="status" class="form-control form-control-sm mr-2" th:classappend="${v.status == 'REGISTERED' ? 'text-info' : (v.status == 'PAID' ? 'text-success' : 'text-danger')}">
+                                <option th:selected="${v.status == 'REGISTERED'}" value="REGISTERED" th:text="#{status.registered}">Registered</option>
+                                <option th:selected="${v.status == 'PAID'}" value="PAID" th:text="#{status.paid}">Paid</option>
+                                <option th:selected="${v.status == 'CANCELED'}" value="CANCELED" th:text="#{status.canceled}">Canceled</option>
+                            </select>
+                            <input type="text" name="reason" class="form-control form-control-sm mr-2" th:placeholder="#{manager.reason}" th:value="${v.cancellationReason}">
+                            <button type="submit" class="btn btn-sm btn-primary" th:text="#{manager.save}">Save</button>
+                        </form>
+                    </td>
+                </tr>
+                <tr th:if="${orderedVouchers.empty}">
+                    <td colspan="4" class="text-center text-muted" th:text="#{manager.orders.empty}">No ordered tours found.</td>
+                </tr>
+                </tbody>
+            </table>
+            <ul id="pag-admin-orders" class="pagination pagination-sm justify-content-center mt-3"></ul>
         </div>
 
         <div class="tab-pane fade" id="users" role="tabpanel">
-            <table class="table table-sm, table-users">
+            <div class="d-flex justify-content-end mt-2 mb-2">
+                <input type="text" id="search-admin-users" class="form-control w-25" th:placeholder="#{admin.search}">
+            </div>
+
+            <table class="table table-sm table-users">
                 <thead class="thead-light">
-                    <tr>
-                        <th th:text="#{user.table.username}">Username</th>
-                        <th th:text="#{user.table.email}">Email</th>
-                        <th th:text="#{user.table.status}">Status</th>
-                        <th th:text="#{user.table.action}">Action</th>
-                    </tr>
+                <tr>
+                    <th th:text="#{user.table.username}">Username</th>
+                    <th th:text="#{user.table.email}">Email</th>
+                    <th th:text="#{user.table.status}">Status</th>
+                    <th th:text="#{user.table.action}">Action</th>
+                </tr>
                 </thead>
-                <tbody>
-                <tr th:each="u : ${users}">
+                <tbody id="tbody-admin-users">
+                <tr th:each="u : ${users}" class="data-row">
                     <td th:text="${u.username}"></td>
                     <td th:text="${u.email}"></td>
                     <td>
@@ -246,6 +302,7 @@
                 </tr>
                 </tbody>
             </table>
+            <ul id="pag-admin-users" class="pagination pagination-sm justify-content-center mt-3"></ul>
         </div>
     </div>
 </div>
@@ -254,20 +311,146 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
 
-<script>
-    function deleteTour(id) {
-        if(confirm("Are you sure you want to delete this tour?")) {
-            fetch('/api/vouchers/' + id, { method: 'DELETE' }).then(res => {
-                if(res.ok) window.location.reload();
+<script th:inline="javascript">
+    function initTablePagination(tbodyId, searchId, pagId, rowsPerPage) {
+        const tbody = document.getElementById(tbodyId);
+        if (!tbody) return;
+        const searchInput = document.getElementById(searchId);
+        const pagination = document.getElementById(pagId);
+        let currentPage = 1;
+        function render() {
+            const rows = Array.from(tbody.querySelectorAll('tr.data-row'));
+            const term = searchInput.value.toLowerCase();
+            let visibleRows = [];
+            rows.forEach(row => {
+                if (row.innerText.toLowerCase().includes(term)) {
+                    visibleRows.push(row);
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+            let totalPages = Math.ceil(visibleRows.length / rowsPerPage) || 1;
+            if (currentPage > totalPages) currentPage = totalPages;
+            let start = (currentPage - 1) * rowsPerPage;
+            let end = start + rowsPerPage;
+            visibleRows.forEach((row, i) => {
+                row.style.display = (i >= start && i < end) ? '' : 'none';
+            });
+            pagination.innerHTML = '';
+            if(totalPages > 1) {
+                for (let i = 1; i <= totalPages; i++) {
+                    let li = document.createElement('li');
+                    li.className = `page-item ${i === currentPage ? 'active' : ''}`;
+                    li.innerHTML = `<a class="page-link" href="javascript:void(0)">${i}</a>`;
+                    li.onclick = function(e) {
+                        e.preventDefault();
+                        currentPage = i;
+                        render();
+                    };
+                    pagination.appendChild(li);
+                }
+            }
+        }
+        if (searchInput) {
+            searchInput.addEventListener('input', function() {
+                currentPage = 1;
+                render();
             });
         }
+        render();
     }
     $(document).ready(function() {
         let hash = window.location.hash;
         if (hash) {
             $('.nav-tabs a[href="' + hash + '"]').tab('show');
         }
+        $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
+            window.location.hash = e.target.hash;
+        });
+        $('.lang-switch').on('click', function(e) {
+            e.preventDefault();
+            window.location.href = $(this).attr('href') + window.location.hash;
+        });
+        initTablePagination('tbody-admin-tours', 'search-admin-tours', 'pag-admin-tours', 5);
+        initTablePagination('tbody-admin-orders', 'search-admin-orders', 'pag-admin-orders', 5);
+        initTablePagination('tbody-admin-users', 'search-admin-users', 'pag-admin-users', 5);
+        let today = new Date().toISOString().split('T')[0];
+        document.querySelectorAll('input[name="arrivalDate"]').forEach(input => {
+            if (!input.value) input.setAttribute('min', today);
+            input.addEventListener('change', function() {
+                let form = this.closest('form');
+                let evictionInput = form.querySelector('input[name="evictionDate"]');
+                evictionInput.setAttribute('min', this.value);
+                if(evictionInput.value && evictionInput.value < this.value) {
+                    evictionInput.value = this.value;
+                }
+            });
+        });
+        document.querySelectorAll('input[name="evictionDate"]').forEach(input => {
+            let form = input.closest('form');
+            let arrivalInput = form.querySelector('input[name="arrivalDate"]');
+            if(arrivalInput && arrivalInput.value) {
+                input.setAttribute('min', arrivalInput.value);
+            }
+        });
     });
+    function deleteTour(id, btnElement) {
+        fetch('/api/vouchers/' + id, { method: 'DELETE' }).then(res => {
+            if(res.ok) {
+                let row = btnElement.closest('tr');
+                row.style.transition = "opacity 0.3s";
+                row.style.opacity = "0";
+                setTimeout(() => {
+                    row.remove();
+                    initTablePagination('tbody-admin-tours', 'search-admin-tours', 'pag-admin-tours', 5);
+                }, 300);
+            }
+        });
+    }
+    function toggleHotAjax(btnElement) {
+        let id = btnElement.getAttribute('data-id');
+        fetch('/web/vouchers/' + id + '/hot', { method: 'POST' })
+            .then(res => {
+                if(res.ok) {
+                    let badge = document.getElementById('hot-badge-' + id);
+                    let textHot = /*[[#{tour.hot}]]*/ 'HOT';
+                    let textNormal = /*[[#{tour.normal}]]*/ 'Normal';
+                    if(badge.classList.contains('badge-danger')) {
+                        badge.innerText = textNormal;
+                        badge.className = 'badge mr-2 badge-secondary';
+                    } else {
+                        badge.innerText = textHot;
+                        badge.className = 'badge mr-2 badge-danger';
+                    }
+                }
+            });
+    }
+    function updateStatusAjax(event, formElement) {
+        event.preventDefault();
+        let id = formElement.getAttribute('data-id');
+        let params = new URLSearchParams(new FormData(formElement));
+        let btn = formElement.querySelector('button[type="submit"]');
+        let originalText = btn.innerText;
+        btn.innerText = '⏳...';
+        btn.disabled = true;
+        fetch('/web/vouchers/' + id + '/status', { method: 'POST', body: params })
+            .then(res => {
+                if(res.ok) {
+                    let row = formElement.closest('tr');
+                    row.style.transition = "opacity 0.4s ease, transform 0.4s ease";
+                    row.style.opacity = "0";
+                    row.style.transform = "translateX(-20px)";
+                    setTimeout(() => {
+                        row.remove();
+                        initTablePagination('tbody-admin-orders', 'search-admin-orders', 'pag-admin-orders', 5);
+                    }, 400);
+                } else {
+                    btn.innerText = originalText;
+                    btn.disabled = false;
+                    alert('Помилка при збереженні статусу!');
+                }
+            });
+    }
     function toggleUserStatus(buttonElement) {
         const username = buttonElement.getAttribute('data-username');
         const statusSpan = document.getElementById('status-' + username);

@@ -8,7 +8,7 @@
 <body>
 
 <nav class="navbar navbar-expand-lg navbar-dark bg-info">
-    <a class="navbar-brand" href="/" th:text="#{nav.home}">Travel Agency</a>
+    <a class="navbar-brand" href="/manager" th:text="#{nav.home}">Travel Agency</a>
     <div class="ml-auto">
         <a sec:authorize="isAuthenticated()" href="/profile" class="btn btn-success" th:text="#{nav.profile}">My Profile</a>
         <a sec:authorize="hasRole('MANAGER')" href="/manager" class="btn btn-dark" th:text="#{nav.manager}">Manager Panel</a>
@@ -18,13 +18,12 @@
 
 <div class="container mt-5">
     <div class="mb-3 text-right">
-        <a href="?lang=en" class="btn btn-sm btn-outline-secondary">EN</a>
-        <a href="?lang=uk" class="btn btn-sm btn-outline-secondary">UK</a>
+        <a href="?lang=en" class="btn btn-sm btn-outline-secondary lang-switch">EN</a>
+        <a href="?lang=uk" class="btn btn-sm btn-outline-secondary lang-switch">UK</a>
     </div>
 
     <h2 class="mb-4" th:text="#{manager.title}">Manager Dashboard</h2>
 
-    <!-- Вкладки навігації -->
     <ul class="nav nav-tabs" id="managerTabs" role="tablist">
         <li class="nav-item">
             <a class="nav-link active" id="orders-tab" data-toggle="tab" href="#orders" role="tab" th:text="#{manager.tab.orders}">User Orders</a>
@@ -36,9 +35,12 @@
 
     <div class="tab-content bg-white border border-top-0 p-4 mb-5" id="managerTabsContent">
 
-        <!-- ВКЛАДКА 1: ЗАМОВЛЕННЯ (Зміна статусу та Коментар) -->
         <div class="tab-pane fade show active" id="orders" role="tabpanel">
-            <table class="table table-hover shadow-sm mt-3">
+            <div class="d-flex justify-content-end mt-2 mb-2">
+                <input type="text" id="search-orders" class="form-control w-25" th:placeholder="#{admin.search}">
+            </div>
+
+            <table class="table table-hover shadow-sm">
                 <thead class="thead-light">
                 <tr>
                     <th th:text="#{tour.title}">Tour</th>
@@ -47,15 +49,14 @@
                     <th th:text="#{manager.status.action}">Update Status</th>
                 </tr>
                 </thead>
-                <tbody>
-                <tr th:each="v : ${orderedVouchers}">
-                    <td th:text="${v.title}"></td>
-                    <!-- Безпечно виводимо email клієнта, якщо він існує -->
+                <tbody id="tbody-orders">
+                <tr th:each="v : ${orderedVouchers}" class="data-row">
+                    <td th:text="#{${v.title}}"></td>
                     <td class="font-weight-bold text-primary" th:text="${v.user != null ? v.user.email : 'Unknown'}"></td>
                     <td>$<span th:text="${v.price}"></span></td>
 
                     <td>
-                        <form th:action="@{'/web/vouchers/' + ${v.id} + '/status'}" method="post" class="form-inline">
+                        <form onsubmit="updateStatusAjax(event, this)" th:data-id="${v.id}" th:action="@{'/web/vouchers/' + ${v.id} + '/status'}" method="post" class="form-inline">
                             <select name="status" class="form-control form-control-sm mr-2" th:classappend="${v.status == 'REGISTERED' ? 'text-info' : (v.status == 'PAID' ? 'text-success' : 'text-danger')}">
                                 <option th:selected="${v.status == 'REGISTERED'}" value="REGISTERED" th:text="#{status.registered}">Registered</option>
                                 <option th:selected="${v.status == 'PAID'}" value="PAID" th:text="#{status.paid}">Paid</option>
@@ -71,28 +72,41 @@
                 </tr>
                 </tbody>
             </table>
+            <ul id="pag-orders" class="pagination pagination-sm justify-content-center mt-3"></ul>
         </div>
 
-        <!-- ВКЛАДКА 2: ГАРЯЧІ ТУРИ (Тільки перемикач) -->
         <div class="tab-pane fade" id="tours" role="tabpanel">
-            <table class="table table-hover mt-3">
+            <div class="d-flex justify-content-end mt-2 mb-2">
+                <input type="text" id="search-tours" class="form-control w-25" th:placeholder="#{admin.search}">
+            </div>
+
+            <table class="table table-hover">
                 <thead class="thead-light">
-                <tr><th th:text="#{tour.title}">Title</th><th th:text="#{tour.price}">Price</th><th th:text="#{tour.status}">Status</th><th th:text="#{manager.hot.toggle}">Is Hot?</th></tr>
+                <tr>
+                    <th th:text="#{tour.title}">Title</th>
+                    <th th:text="#{tour.price}">Price</th>
+                    <th th:text="#{tour.status}">Status</th>
+                    <th th:text="#{manager.hot.toggle}">Is Hot?</th>
+                </tr>
                 </thead>
-                <tbody>
-                <tr th:each="v : ${allVouchers}">
-                    <td th:text="${v.title}"></td>
+                <tbody id="tbody-tours">
+                <tr th:each="v : ${allVouchers}" th:if="${v.user == null}" class="data-row">
+                    <td th:text="#{${v.title}}"></td>
                     <td>$<span th:text="${v.price}"></span></td>
-                    <td><span class="badge badge-info" th:text="${v.status}"></span></td>
+                    <td><span class="badge badge-info" th:text="#{ 'status.' + ${#strings.toLowerCase(v.status)} }"></span></td>
                     <td>
-                        <span class="badge mr-2" th:classappend="${(v.isHot ?: false) ? 'badge-danger' : 'badge-secondary'}" th:text="${(v.isHot ?: false) ? 'HOT' : 'Normal'}"></span>
+                        <span th:id="'hot-badge-' + ${v.id}" class="badge mr-2"
+                              th:classappend="${(v.isHot ?: false) ? 'badge-danger' : 'badge-secondary'}"
+                              th:text="${(v.isHot ?: false) ? #messages.msg('tour.hot') : #messages.msg('tour.normal')}"></span>
+
                         <form th:action="@{'/web/vouchers/' + ${v.id} + '/hot'}" method="post" class="d-inline">
-                            <button type="submit" class="btn btn-sm btn-outline-warning" th:text="#{manager.toggle}">Toggle</button>
+                            <button type="button" class="btn btn-sm btn-outline-warning" th:data-id="${v.id}" onclick="toggleHotAjax(this)" th:text="#{manager.toggle}">Toggle</button>
                         </form>
                     </td>
                 </tr>
                 </tbody>
             </table>
+            <ul id="pag-tours" class="pagination pagination-sm justify-content-center mt-3"></ul>
         </div>
 
     </div>
@@ -101,13 +115,115 @@
 <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
-<script>
+
+<script th:inline="javascript">
+    function initTablePagination(tbodyId, searchId, pagId, rowsPerPage) {
+        const tbody = document.getElementById(tbodyId);
+        if (!tbody) return;
+        const searchInput = document.getElementById(searchId);
+        const pagination = document.getElementById(pagId);
+        let currentPage = 1;
+        function render() {
+            const rows = Array.from(tbody.querySelectorAll('tr.data-row'));
+            const term = searchInput.value.toLowerCase();
+            let visibleRows = [];
+            rows.forEach(row => {
+                if (row.innerText.toLowerCase().includes(term)) {
+                    visibleRows.push(row);
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+            let totalPages = Math.ceil(visibleRows.length / rowsPerPage) || 1;
+            if (currentPage > totalPages) currentPage = totalPages;
+            let start = (currentPage - 1) * rowsPerPage;
+            let end = start + rowsPerPage;
+            visibleRows.forEach((row, i) => {
+                row.style.display = (i >= start && i < end) ? '' : 'none';
+            });
+            pagination.innerHTML = '';
+            if(totalPages > 1) {
+                for (let i = 1; i <= totalPages; i++) {
+                    let li = document.createElement('li');
+                    li.className = `page-item ${i === currentPage ? 'active' : ''}`;
+                    li.innerHTML = `<a class="page-link" href="javascript:void(0)">${i}</a>`;
+                    li.onclick = function(e) {
+                        e.preventDefault();
+                        currentPage = i;
+                        render();
+                    };
+                    pagination.appendChild(li);
+                }
+            }
+        }
+        if (searchInput) {
+            searchInput.addEventListener('input', function() {
+                currentPage = 1;
+                render();
+            });
+        }
+        render();
+    }
     $(document).ready(function() {
         let hash = window.location.hash;
         if (hash) {
             $('.nav-tabs a[href="' + hash + '"]').tab('show');
         }
+        $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
+            window.location.hash = e.target.hash;
+        });
+        $('.lang-switch').on('click', function(e) {
+            e.preventDefault();
+            window.location.href = $(this).attr('href') + window.location.hash;
+        });
+        initTablePagination('tbody-orders', 'search-orders', 'pag-orders', 5);
+        initTablePagination('tbody-tours', 'search-tours', 'pag-tours', 5);
     });
+    function toggleHotAjax(btnElement) {
+        let id = btnElement.getAttribute('data-id');
+        fetch('/web/vouchers/' + id + '/hot', { method: 'POST' })
+            .then(res => {
+                if(res.ok) {
+                    let badge = document.getElementById('hot-badge-' + id);
+                    let textHot = /*[[#{tour.hot}]]*/ 'HOT';
+                    let textNormal = /*[[#{tour.normal}]]*/ 'Normal';
+
+                    if(badge.classList.contains('badge-danger')) {
+                        badge.innerText = textNormal;
+                        badge.className = 'badge mr-2 badge-secondary';
+                    } else {
+                        badge.innerText = textHot;
+                        badge.className = 'badge mr-2 badge-danger';
+                    }
+                }
+            });
+    }
+    function updateStatusAjax(event, formElement) {
+        event.preventDefault();
+        let id = formElement.getAttribute('data-id');
+        let params = new URLSearchParams(new FormData(formElement));
+        let btn = formElement.querySelector('button[type="submit"]');
+        let originalText = btn.innerText;
+        btn.innerText = '⏳...';
+        btn.disabled = true;
+        fetch('/web/vouchers/' + id + '/status', { method: 'POST', body: params })
+            .then(res => {
+                if(res.ok) {
+                    let row = formElement.closest('tr');
+                    row.style.transition = "opacity 0.4s ease, transform 0.4s ease";
+                    row.style.opacity = "0";
+                    row.style.transform = "translateX(-20px)";
+                    setTimeout(() => {
+                        row.remove();
+                        initTablePagination('tbody-orders', 'search-orders', 'pag-orders', 5);
+                    }, 400);
+                } else {
+                    btn.innerText = originalText;
+                    btn.disabled = false;
+                    alert('Помилка при збереженні статусу!');
+                }
+            });
+    }
 </script>
 </body>
 </html>

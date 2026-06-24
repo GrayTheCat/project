@@ -27,14 +27,20 @@ public class VoucherDTO {
     private Double price;
 
     private String tourType;
+
     private String transferType;
+
     private String hotelType;
+
     private String status;
 
     private LocalDate arrivalDate;
+
     private LocalDate evictionDate;
 
     private Boolean isHot;
+
     private UserDTO user;
+
     private String cancellationReason;
 }

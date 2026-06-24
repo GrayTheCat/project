@@ -17,10 +17,12 @@ import com.epam.finaltask.service.VoucherService;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -34,7 +36,9 @@ public class VoucherServiceImpl implements VoucherService {
     private final ModelMapper modelMapper;
 
     @Override
+    @PreAuthorize("hasRole('ADMIN')")
     public VoucherDTO create(VoucherDTO voucherDTO) {
+        validateVoucherData(voucherDTO);
         Voucher voucher = modelMapper.map(voucherDTO, Voucher.class);
         voucher.setStatus(VoucherStatus.REGISTERED);
         voucher.setIsHot(false);
@@ -43,6 +47,7 @@ public class VoucherServiceImpl implements VoucherService {
 
     @Override
     @Transactional
+    @PreAuthorize("isAuthenticated()")
     public VoucherDTO order(String id, String userId) {
         Voucher catalogVoucher = voucherRepository.findById(UUID.fromString(id))
                 .orElseThrow(() -> new ResourceNotFoundException("Voucher not found"));
@@ -72,7 +77,10 @@ public class VoucherServiceImpl implements VoucherService {
     }
 
     @Override
+    @PreAuthorize("hasRole('ADMIN')")
     public VoucherDTO update(String id, VoucherDTO voucherDTO) {
+        voucherDTO.setId(UUID.fromString(id));
+        validateVoucherData(voucherDTO);
         Voucher existingVoucher = voucherRepository.findById(UUID.fromString(id))
                 .orElseThrow(() -> new ResourceNotFoundException("Voucher not found"));
 
@@ -83,6 +91,7 @@ public class VoucherServiceImpl implements VoucherService {
     }
 
     @Override
+    @PreAuthorize("hasRole('ADMIN')")
     public void delete(String voucherId) {
         if (!voucherRepository.existsById(UUID.fromString(voucherId))) {
             throw new ResourceNotFoundException("Voucher not found");
@@ -91,6 +100,7 @@ public class VoucherServiceImpl implements VoucherService {
     }
 
     @Override
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     public VoucherDTO changeHotStatus(String id, VoucherDTO voucherDTO) {
         Voucher voucher = voucherRepository.findById(UUID.fromString(id))
                 .orElseThrow(() -> new ResourceNotFoundException("Voucher not found"));
@@ -130,6 +140,7 @@ public class VoucherServiceImpl implements VoucherService {
     }
 
     @Override
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     public Page<VoucherDTO> findAll(int page, int size, String sortBy) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy));
         return voucherRepository.findAll(pageable)
@@ -161,6 +172,7 @@ public class VoucherServiceImpl implements VoucherService {
 
     @Override
     @Transactional
+    @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
     public void changeStatus(String id, String status, String reason) {
         Voucher voucher = voucherRepository.findById(UUID.fromString(id))
                 .orElseThrow(() -> new ResourceNotFoundException("Voucher not found"));
@@ -179,6 +191,7 @@ public class VoucherServiceImpl implements VoucherService {
     }
 
     @Override
+    @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
     public List<VoucherDTO> findAllOrdered() {
         return voucherRepository.findByUserNotNull().stream()
                 .filter(v -> v.getStatus() != VoucherStatus.PAID && v.getStatus() != VoucherStatus.CANCELED)
@@ -188,10 +201,27 @@ public class VoucherServiceImpl implements VoucherService {
 
     @Override
     @Transactional
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     public void toggleHotStatus(String id) {
         Voucher voucher = voucherRepository.findById(UUID.fromString(id))
                 .orElseThrow(() -> new ResourceNotFoundException("Voucher not found"));
         voucher.setIsHot(!voucher.getIsHot());
         voucherRepository.save(voucher);
+    }
+
+    private void validateVoucherData(VoucherDTO dto) {
+        if (dto.getPrice() == null || dto.getPrice() <= 0) {
+            throw new BusinessLogicException("Price must be greater than zero.");
+        }
+        if (dto.getArrivalDate() != null && dto.getEvictionDate() != null) {
+            LocalDate arrival = LocalDate.parse(dto.getArrivalDate().toString());
+            LocalDate eviction = LocalDate.parse(dto.getEvictionDate().toString());
+            if (arrival.isAfter(eviction)) {
+                throw new BusinessLogicException("Arrival date cannot be later than eviction date.");
+            }
+            if (dto.getId() == null && arrival.isBefore(LocalDate.now())) {
+                throw new BusinessLogicException("Cannot create a tour with a past arrival date.");
+            }
+        }
     }
 }

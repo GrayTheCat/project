@@ -36,8 +36,10 @@ public class UserDTO {
     private String password;
 
     private String role;
-    private String phoneNumber;
-    private BigDecimal balance;
-    private boolean active;
 
+    private String phoneNumber;
+
+    private BigDecimal balance;
+
+    private boolean active;
 }
