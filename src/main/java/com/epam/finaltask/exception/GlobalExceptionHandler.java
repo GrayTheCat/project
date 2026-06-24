@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -45,6 +46,17 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     public ModelAndView handleAll(Exception ex) {
         return handleException(HttpStatus.INTERNAL_SERVER_ERROR, ex);
+    }
+
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ModelAndView handleNoResourceFoundException(NoResourceFoundException ex) {
+        return handleException(HttpStatus.NOT_FOUND, ex);
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ModelAndView handleIllegalArgumentException(IllegalArgumentException ex) {
+        log.warn("Invalid UUID or argument passed: {}", ex.getMessage());
+        return handleException(HttpStatus.BAD_REQUEST, ex); // Видасть 400 Bad Request
     }
 
     private ModelAndView handleException(HttpStatus status, Exception ex){

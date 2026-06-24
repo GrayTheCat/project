@@ -74,12 +74,13 @@ public class WebController {
     @PostMapping("/auth/web-login")
     public String webLogin(@RequestParam String username, @RequestParam String password, HttpServletResponse response) {
         try {
-            UserDetails user = userDetailsService.loadUserByUsername(username);
-            if (!user.isEnabled() || !user.isAccountNonLocked()) {
+            UserDTO userDTO = userService.getUserByUsername(username);
+            if (!userDTO.isActive()) {
                 return "redirect:/auth/sign-in?error=user.blocked";
             }
             authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(username, password));
-            String token = jwtService.generateToken(user);
+            UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+            String token = jwtService.generateToken(userDetails);
             Cookie cookie = new Cookie("JWT", token);
             cookie.setHttpOnly(true);
             cookie.setPath("/");

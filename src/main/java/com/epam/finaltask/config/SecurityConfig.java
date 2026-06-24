@@ -1,6 +1,5 @@
 package com.epam.finaltask.config;
 
-import com.epam.finaltask.auth.AuthenticationFailureHandler;
 import com.epam.finaltask.token.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -32,11 +31,6 @@ public class SecurityConfig {
                         .requestMatchers("/admin/**").hasAnyRole("ADMIN")
                         .requestMatchers("/manager/**").hasAnyRole("MANAGER")
                         .anyRequest().authenticated()
-                )
-                .formLogin(form -> form
-                        .loginPage("/auth/sign-in")
-                        .failureHandler(new AuthenticationFailureHandler())
-                        .permitAll()
                 )
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authenticationProvider(authenticationProvider)

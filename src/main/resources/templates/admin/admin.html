@@ -217,7 +217,14 @@
 
         <div class="tab-pane fade" id="users" role="tabpanel">
             <table class="table table-sm, table-users">
-                <thead class="thead-light"><tr><th>Username</th><th>Email</th><th>Status</th><th th:text="#{tour.action}">Action</th></tr></thead>
+                <thead class="thead-light">
+                    <tr>
+                        <th th:text="#{user.table.username}">Username</th>
+                        <th th:text="#{user.table.email}">Email</th>
+                        <th th:text="#{user.table.status}">Status</th>
+                        <th th:text="#{user.table.action}">Action</th>
+                    </tr>
+                </thead>
                 <tbody>
                 <tr th:each="u : ${users}">
                     <td th:text="${u.username}"></td>

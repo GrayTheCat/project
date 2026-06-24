@@ -7,10 +7,18 @@
 </head>
 <body>
 <div class="container text-center mt-5">
+
+    <div class="mb-3 text-right">
+        <a href="?lang=en" class="btn btn-sm btn-outline-secondary">EN</a>
+        <a href="?lang=uk" class="btn btn-sm btn-outline-secondary">UK</a>
+    </div>
+
     <h1 class="display-1 text-danger" th:text="#{error.oops}">Oops!</h1>
     <h2 th:text="#{error.something.went.wrong}">Something went wrong</h2>
+
     <p th:text="${error} != null ? (${#messages.msgOrNull(error)} ?: ${error}) : #{error.unexpected}"></p>
     <p th:text="#{error.status} + ': ' + ${status}"></p>
+
     <a href="/" class="btn btn-primary mt-3" th:text="#{error.go.back}">Go Back to Home</a>
 </div>
 </body>
