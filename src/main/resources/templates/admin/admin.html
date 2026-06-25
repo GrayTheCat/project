@@ -10,7 +10,6 @@
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
     <a class="navbar-brand" href="/admin" th:text="#{nav.home}">Travel Agency</a>
     <div class="ml-auto">
-        <a sec:authorize="isAuthenticated()" href="/profile" class="btn btn-success" th:text="#{nav.profile}">My Profile</a>
         <a sec:authorize="hasRole('ADMIN')" href="/admin" class="btn btn-warning" th:text="#{nav.admin}">Admin Panel</a>
         <a sec:authorize="isAuthenticated()" href="/auth/logout" class="btn btn-danger" th:text="#{nav.logout}">Logout</a>
     </div>

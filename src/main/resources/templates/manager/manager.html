@@ -10,7 +10,6 @@
 <nav class="navbar navbar-expand-lg navbar-dark bg-info">
     <a class="navbar-brand" href="/manager" th:text="#{nav.home}">Travel Agency</a>
     <div class="ml-auto">
-        <a sec:authorize="isAuthenticated()" href="/profile" class="btn btn-success" th:text="#{nav.profile}">My Profile</a>
         <a sec:authorize="hasRole('MANAGER')" href="/manager" class="btn btn-dark" th:text="#{nav.manager}">Manager Panel</a>
         <a sec:authorize="isAuthenticated()" href="/auth/logout" class="btn btn-danger" th:text="#{nav.logout}">Logout</a>
     </div>
@@ -169,12 +168,8 @@
         if (hash) {
             $('.nav-tabs a[href="' + hash + '"]').tab('show');
         }
-        $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
-            window.location.hash = e.target.hash;
-        });
-        $('.lang-switch').on('click', function(e) {
-            e.preventDefault();
-            window.location.href = $(this).attr('href') + window.location.hash;
+        $('a[data-toggle="tab"]').on('click', function (e) {
+            history.pushState(null, null, $(this).attr('href'));
         });
         initTablePagination('tbody-orders', 'search-orders', 'pag-orders', 5);
         initTablePagination('tbody-tours', 'search-tours', 'pag-tours', 5);

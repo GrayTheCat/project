@@ -4,6 +4,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -39,7 +40,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
     public ModelAndView handleHttpRequestMethodNotSupportedException(HttpRequestMethodNotSupportedException ex) {
-        log.warn("Suspicious activity detected.");
+        log.error("Suspicious activity detected.");
         return handleException(HttpStatus.FORBIDDEN, ex);
     }
 
@@ -55,13 +56,13 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(IllegalArgumentException.class)
     public ModelAndView handleIllegalArgumentException(IllegalArgumentException ex) {
-        log.warn("Invalid UUID or argument passed: {}", ex.getMessage());
+        log.error("Invalid UUID or argument passed: {}", ex.getMessage());
         return handleException(HttpStatus.BAD_REQUEST, ex); // Видасть 400 Bad Request
     }
 
-    @ExceptionHandler(org.springframework.security.access.AccessDeniedException.class)
+    @ExceptionHandler(AccessDeniedException.class)
     public ModelAndView handleAccessDenied(org.springframework.security.access.AccessDeniedException ex) {
-        log.warn("Access denied: {}", ex.getMessage());
+        log.error("Access denied: {}", ex.getMessage());
         ModelAndView view = new ModelAndView("error");
         view.addObject("status", HttpStatus.FORBIDDEN.value());
         return view;

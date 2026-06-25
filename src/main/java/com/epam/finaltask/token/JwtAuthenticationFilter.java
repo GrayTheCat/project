@@ -51,7 +51,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             log.debug("Security Event: Request to {} with JWT token present", request.getRequestURI());
         } else {
             if (request.getRequestURI().startsWith("/admin") || request.getRequestURI().startsWith("/profile")) {
-                log.warn("Security Event: Anonymous request to protected resource: {}", request.getRequestURI());
+                log.debug("Security Event: Anonymous request to protected resource: {}", request.getRequestURI());
             }
         }
 

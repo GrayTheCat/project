@@ -67,7 +67,17 @@ public class AuthController {
             refreshCookie.setMaxAge(7 * 24 * 60 * 60);
             response.addCookie(jwtCookie);
             response.addCookie(refreshCookie);
-            return "redirect:/profile";
+            boolean isAdmin = userDetails.getAuthorities().stream()
+                    .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+            boolean isManager = userDetails.getAuthorities().stream()
+                    .anyMatch(a -> a.getAuthority().equals("ROLE_MANAGER"));
+            if (isAdmin) {
+                return "redirect:/admin";
+            } else if (isManager) {
+                return "redirect:/manager";
+            } else {
+                return "redirect:/profile";
+            }
         } catch (Exception e) {
             return "redirect:/auth/sign-in?error=login.error";
         }

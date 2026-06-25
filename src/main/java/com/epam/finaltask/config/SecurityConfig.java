@@ -34,7 +34,12 @@ public class SecurityConfig {
                 )
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authenticationProvider(authenticationProvider)
-                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
+                .exceptionHandling(exception -> exception
+                        .accessDeniedHandler((request, response, accessDeniedException) -> {
+                            response.sendRedirect("/error?status=403");
+                        })
+                );;
 
         return http.build();
     }
