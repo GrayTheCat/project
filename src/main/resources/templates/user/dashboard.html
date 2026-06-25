@@ -11,7 +11,11 @@
 
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
     <a class="navbar-brand" href="/" th:text="#{nav.home}">Travel Agency</a>
-    <div class="ml-auto">
+    <div class="ml-auto d-flex align-items-center">
+        <div class="mr-4">
+            <a href="?lang=en" class="btn btn-sm btn-outline-secondary lang-switch">EN</a>
+            <a href="?lang=uk" class="btn btn-sm btn-outline-secondary lang-switch">UK</a>
+        </div>
         <a sec:authorize="isAnonymous()" href="/auth/sign-in" class="btn btn-outline-light" th:text="#{nav.signin}">Sign in</a>
         <a sec:authorize="isAnonymous()" href="/auth/sign-up" class="btn btn-primary" th:text="#{nav.signup}">Sign up</a>
 
@@ -22,10 +26,6 @@
 </nav>
 
 <div class="container mt-4">
-    <div class="mb-3 text-right">
-        <a href="?lang=en" class="btn btn-sm btn-outline-secondary">EN</a>
-        <a href="?lang=uk" class="btn btn-sm btn-outline-secondary">UK</a>
-    </div>
 
     <h2 class="mb-4" th:text="#{nav.dashboard}">Dashboard</h2>
 

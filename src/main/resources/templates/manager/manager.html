@@ -7,19 +7,18 @@
 </head>
 <body>
 
-<nav class="navbar navbar-expand-lg navbar-dark bg-info">
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
     <a class="navbar-brand" href="/manager" th:text="#{nav.home}">Travel Agency</a>
-    <div class="ml-auto">
-        <a sec:authorize="hasRole('MANAGER')" href="/manager" class="btn btn-dark" th:text="#{nav.manager}">Manager Panel</a>
+    <div class="ml-auto d-flex align-items-center">
+        <div class="mr-4">
+            <a href="?lang=en" class="btn btn-sm btn-outline-secondary lang-switch">EN</a>
+            <a href="?lang=uk" class="btn btn-sm btn-outline-secondary lang-switch">UK</a>
+        </div>
         <a sec:authorize="isAuthenticated()" href="/auth/logout" class="btn btn-danger" th:text="#{nav.logout}">Logout</a>
     </div>
 </nav>
 
 <div class="container mt-5">
-    <div class="mb-3 text-right">
-        <a href="?lang=en" class="btn btn-sm btn-outline-secondary lang-switch">EN</a>
-        <a href="?lang=uk" class="btn btn-sm btn-outline-secondary lang-switch">UK</a>
-    </div>
 
     <h2 class="mb-4" th:text="#{manager.title}">Manager Dashboard</h2>
 
