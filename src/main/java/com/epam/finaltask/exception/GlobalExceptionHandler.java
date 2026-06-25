@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -57,15 +58,19 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(IllegalArgumentException.class)
     public ModelAndView handleIllegalArgumentException(IllegalArgumentException ex) {
         log.error("Invalid UUID or argument passed: {}", ex.getMessage());
-        return handleException(HttpStatus.BAD_REQUEST, ex); // Видасть 400 Bad Request
+        return handleException(HttpStatus.BAD_REQUEST, ex);
     }
 
     @ExceptionHandler(AccessDeniedException.class)
-    public ModelAndView handleAccessDenied(org.springframework.security.access.AccessDeniedException ex) {
-        log.error("Access denied: {}", ex.getMessage());
-        ModelAndView view = new ModelAndView("error");
-        view.addObject("status", HttpStatus.FORBIDDEN.value());
-        return view;
+    public ModelAndView handleAccessDenied(AccessDeniedException ex) {
+        log.error("SECURITY ALERT: Access denied. Details: {}", ex.getMessage());
+        return handleException(HttpStatus.FORBIDDEN, ex);
+    }
+
+    @ExceptionHandler(AuthenticationException.class)
+    public ModelAndView handleAuthenticationException(AuthenticationException ex) {
+        log.warn("SECURITY ALERT: Unauthorized access attempt. Details: {}", ex.getMessage());
+        return handleException(HttpStatus.UNAUTHORIZED, ex);
     }
 
     private ModelAndView handleException(HttpStatus status, Exception ex){

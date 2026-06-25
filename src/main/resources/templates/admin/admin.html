@@ -393,7 +393,7 @@
         });
     });
     function deleteTour(id, btnElement) {
-        fetch('/api/vouchers/' + id, { method: 'DELETE' }).then(res => {
+        fetch('/web/vouchers/delete/' + id, { method: 'POST' }).then(res => {
             if(res.ok) {
                 let row = btnElement.closest('tr');
                 row.style.transition = "opacity 0.3s";

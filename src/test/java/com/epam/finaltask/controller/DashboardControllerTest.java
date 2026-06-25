@@ -61,7 +61,8 @@ class DashboardControllerTest {
     @Test
     void admin_ShouldRedirectToSignIn_WhenNotAuthenticated() throws Exception {
         mockMvc.perform(get("/admin"))
-                .andExpect(status().isForbidden());
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/auth/sign-in?error=error.unauthorized"));
     }
 
     @Test

@@ -2,6 +2,7 @@ package com.epam.finaltask.service.impl;
 
 import com.epam.finaltask.exception.BusinessLogicException;
 import com.epam.finaltask.model.RefreshToken;
+import com.epam.finaltask.model.User;
 import com.epam.finaltask.repository.RefreshTokenRepository;
 import com.epam.finaltask.repository.UserRepository;
 import com.epam.finaltask.service.RefreshTokenService;
@@ -23,13 +24,12 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
     @Override
     @Transactional
     public RefreshToken createRefreshToken(String username) {
-        RefreshToken refreshToken = new RefreshToken();
-        refreshToken.setUser(userRepository.findUserByUsername(username).orElseThrow());
-        refreshToken.setToken(UUID.randomUUID().toString()); // Генеруємо унікальний рядок
-        refreshToken.setExpiryDate(Instant.now().plusMillis(7 * 24 * 60 * 60 * 1000)); // 7 днів
-
-        refreshTokenRepository.deleteByUser(refreshToken.getUser());
-
+        User user = userRepository.findUserByUsername(username).orElseThrow();
+        RefreshToken refreshToken = refreshTokenRepository.findByUser(user)
+                .orElse(new RefreshToken());
+        refreshToken.setUser(user);
+        refreshToken.setToken(UUID.randomUUID().toString());
+        refreshToken.setExpiryDate(Instant.now().plusMillis(7 * 24 * 60 * 60 * 1000));
         return refreshTokenRepository.save(refreshToken);
     }
 

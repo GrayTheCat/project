@@ -74,4 +74,10 @@ public class VoucherController {
         }
         return "redirect:" + (referer != null ? referer : "/");
     }
+
+    @PostMapping("/delete/{id}")
+    public String deleteTour(@PathVariable String id) {
+        voucherService.delete(id);
+        return "redirect:/admin";
+    }
 }

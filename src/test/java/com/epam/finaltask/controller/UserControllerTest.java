@@ -52,7 +52,8 @@ class UserControllerTest {
     void profile_RedirectsWhenNotAuthenticated() throws Exception {
         mockMvc.perform(get("/profile")
                         .with(anonymous()))
-                .andExpect(status().isForbidden());
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/auth/sign-in?error=error.unauthorized"));
     }
 
     @Test
@@ -84,7 +85,8 @@ class UserControllerTest {
     void topUpBalance_NotAuthenticated_DoesNothing() throws Exception {
         mockMvc.perform(post("/web/profile/top-up").with(csrf())
                         .param("amount", "50.00"))
-                .andExpect(status().isForbidden());
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/auth/sign-in?error=error.unauthorized"));;
         verify(userService, never()).updateUser(anyString(), any());
     }
 

@@ -15,6 +15,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -331,5 +332,62 @@ class AuthControllerTest {
                                 new jakarta.servlet.http.Cookie("REFRESH_TOKEN", "valid-token"))) // <--- REFRESH_TOKEN другий
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/profile"));
+    }
+
+    @Test
+    @WithMockUser
+    void accessDenied_ReturnsErrorView() throws Exception {
+        mockMvc.perform(get("/access-denied"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("error"))
+                .andExpect(model().attribute("status", 403));
+    }
+
+    @Test
+    void webLogin_Admin_RedirectsToAdmin() throws Exception {
+        UserDTO user = new UserDTO();
+        user.setActive(true);
+        when(userService.getUserByUsername("adminUser")).thenReturn(user);
+        UserDetails mockAdmin = org.springframework.security.core.userdetails.User
+                .withUsername("adminUser")
+                .password("encodedPassword")
+                .authorities("ROLE_ADMIN")
+                .build();
+        when(userDetailsService.loadUserByUsername("adminUser")).thenReturn(mockAdmin);
+        doReturn(null).when(authManager).authenticate(any(UsernamePasswordAuthenticationToken.class));
+        when(jwtService.generateToken(any())).thenReturn("mock-jwt-token");
+        RefreshToken mockRefreshToken = new RefreshToken();
+        mockRefreshToken.setToken("mock-refresh-token");
+        when(refreshTokenService.createRefreshToken("adminUser")).thenReturn(mockRefreshToken);
+        mockMvc.perform(post("/auth/web-login").with(csrf())
+                        .param("username", "adminUser")
+                        .param("password", "Pass123"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/admin"))
+                .andExpect(cookie().exists("JWT"));
+    }
+
+    @Test
+    void webLogin_Manager_RedirectsToManager() throws Exception {
+        UserDTO user = new UserDTO();
+        user.setActive(true);
+        when(userService.getUserByUsername("managerUser")).thenReturn(user);
+        UserDetails mockManager = org.springframework.security.core.userdetails.User
+                .withUsername("managerUser")
+                .password("encodedPassword")
+                .authorities("ROLE_MANAGER")
+                .build();
+        when(userDetailsService.loadUserByUsername("managerUser")).thenReturn(mockManager);
+        doReturn(null).when(authManager).authenticate(any(UsernamePasswordAuthenticationToken.class));
+        when(jwtService.generateToken(any())).thenReturn("mock-jwt-token");
+        RefreshToken mockRefreshToken = new RefreshToken();
+        mockRefreshToken.setToken("mock-refresh-token");
+        when(refreshTokenService.createRefreshToken("managerUser")).thenReturn(mockRefreshToken);
+        mockMvc.perform(post("/auth/web-login").with(csrf())
+                        .param("username", "managerUser")
+                        .param("password", "Pass123"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/manager"))
+                .andExpect(cookie().exists("JWT"));
     }
 }
