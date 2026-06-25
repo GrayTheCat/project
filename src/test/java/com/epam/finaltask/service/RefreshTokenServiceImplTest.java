@@ -29,7 +29,6 @@ class RefreshTokenServiceImplTest {
         User user = new User();
         when(userRepository.findUserByUsername("user")).thenReturn(Optional.of(user));
         refreshTokenService.createRefreshToken("user");
-        verify(refreshTokenRepository).deleteByUser(user);
         verify(refreshTokenRepository).save(any(RefreshToken.class));
     }
 

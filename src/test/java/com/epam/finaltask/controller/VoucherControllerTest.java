@@ -166,4 +166,14 @@ class VoucherControllerTest {
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/"));
     }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void deleteTour_ShouldRedirectToAdmin_WhenTourExists() throws Exception {
+        String tourId = "550e8400-e29b-41d4-a716-446655440000";
+        mockMvc.perform(post("/web/vouchers/delete/{id}", tourId))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/admin"));
+        verify(voucherService).delete(tourId);
+    }
 }
