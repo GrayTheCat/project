@@ -21,7 +21,6 @@ public class VoucherController {
 
     @PostMapping("/{id}/order")
     public String orderVoucher(@PathVariable String id, Principal principal) {
-        //if (principal == null) return "redirect:/auth/sign-in";
         log.info("User '{}' is attempting to order voucher '{}'", principal.getName(), id);
         UserDTO user = userService.getUserByUsername(principal.getName());
         voucherService.order(id, user.getId());

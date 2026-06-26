@@ -39,8 +39,7 @@ public class DashboardController {
     }
 
     @GetMapping("/admin")
-    public String admin(Model model, Principal principal) {
-        //if (principal == null) return "redirect:/auth/sign-in";
+    public String admin(Model model) {
         model.addAttribute("vouchers", voucherService.findAll(0, 100, "id").getContent());
         model.addAttribute("users", userService.findAll());
         model.addAttribute("orderedVouchers", voucherService.findAllOrdered());
